@@ -378,3 +378,4 @@ export const WorldDimensionDetailPage: React.FC = () => {
     </div>
   );
 };
+

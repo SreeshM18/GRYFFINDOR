@@ -22,6 +22,8 @@ import { DimensionAtlasPage } from './pages/worlds/DimensionAtlasPage';
 import { WorldDimensionDetailPage } from './pages/worlds/WorldDimensionDetailPage';
 import { SourcesDirectoryPage } from './pages/worlds/SourcesDirectoryPage';
 import { AtriumPage } from './pages/AtriumPage';
+import { DesignStudioPage } from './pages/DesignStudioPage';
+import { DesignSystemProvider } from './context/DesignSystemContext';
 
 // Private Work OS Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -113,6 +115,10 @@ export const AppContent: React.FC = () => {
           <Route path="/resumes" element={<ResumesPage />} />
           <Route path="/contact" element={<ContactPage />} />
 
+          {/* Universal Website Design Engine & Studio */}
+          <Route path="/designs" element={<DesignStudioPage />} />
+          <Route path="/studios" element={<DesignStudioPage />} />
+
           {/* 17-Dimension Atlas & Sources Library */}
           <Route path="/atrium" element={<AtriumPage />} />
           <Route path="/worlds" element={<DimensionAtlasPage />} />
@@ -180,9 +186,11 @@ export const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <DesignSystemProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </DesignSystemProvider>
   );
 };
 

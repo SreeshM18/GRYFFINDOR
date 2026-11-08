@@ -17,6 +17,10 @@ import {
 import { DIMENSION_WORLDS, DimensionWorld } from '../../data/dimensionsData';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { PerspectiveCard } from '../../components/ui/PerspectiveCard';
+import { MarijanaGardenWidget } from '../../components/widgets/MarijanaGardenWidget';
+import { AritroTelemetryWidget } from '../../components/widgets/AritroTelemetryWidget';
+import { FudaliMomentumWidget } from '../../components/widgets/FudaliMomentumWidget';
+import { EyeballsBroadcastWidget } from '../../components/widgets/EyeballsBroadcastWidget';
 
 export const WorldDimensionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -323,7 +327,7 @@ export const WorldDimensionDetailPage: React.FC = () => {
                   <span className="text-gold font-bold uppercase">Original Reference Provenance</span>
                   <span className="text-content-muted">Independently Audited</span>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div><strong>Reference Studio:</strong> {world.sourceName}</div>
                   <div><strong>Original URL:</strong> <a href={world.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">{world.sourceUrl}</a></div>
                   <div><strong>Observed Pattern:</strong> {world.observablePattern}</div>
@@ -344,6 +348,34 @@ export const WorldDimensionDetailPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Signature Live Interactive Suite if applicable to this dimension */}
+          <div className="pt-8 border-t border-white/10">
+            {world.id === '02-sketch' && <MarijanaGardenWidget />}
+            {world.id === '01-signal' && <EyeballsBroadcastWidget />}
+            {world.id === '15-system' && <AritroTelemetryWidget />}
+            {world.id === '16-synthesis' && <FudaliMomentumWidget />}
+            {!['02-sketch', '01-signal', '15-system', '16-synthesis'].includes(world.id) && (
+              <div className="p-6 rounded-2xl border border-border-subtle bg-surface-card/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-display font-bold text-base text-content-primary">
+                    Try Any Design Style in the Design Studio
+                  </h4>
+                  <p className="text-xs text-content-muted mt-0.5">
+                    Switch between 8 world-class website designs with live interactive widgets and color physics.
+                  </p>
+                </div>
+                <Link
+                  to="/designs"
+                  onClick={() => soundFx.playClick()}
+                  className="px-4 py-2 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-mono text-xs font-semibold border border-gold/30 transition-all shrink-0 flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Open Design Studio →
+                </Link>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Bottom Navigation Ribbon */}

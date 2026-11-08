@@ -106,6 +106,14 @@ export const HomePage: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start md:items-end justify-end gap-3">
             <Link
+              to="/designs"
+              onClick={() => soundFx.playClick()}
+              className="px-5 py-3 rounded-full border border-gold/40 text-gold font-medium text-xs hover:bg-gold/10 transition-colors flex items-center gap-1.5"
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>Use Any Website Design</span>
+            </Link>
+            <Link
               to="/work"
               onClick={() => soundFx.playClick()}
               className="px-6 py-3 rounded-full bg-content-primary text-canvas font-medium text-xs hover:bg-burgundy-soft hover:text-white transition-all flex items-center gap-2 group"

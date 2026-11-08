@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Volume2, VolumeX, Sun, Moon, Command, Menu, X, ArrowUpRight, Lock } from 'lucide-react';
+import { Volume2, VolumeX, Sun, Moon, Command, Menu, X, ArrowUpRight, Lock, Palette } from 'lucide-react';
 import { soundFx } from '../ui/AudioSynthesizer';
+import { QuickDesignPicker } from '../ui/QuickDesignPicker';
 
 interface NavbarProps {
   onOpenCommandPalette: () => void;
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { path: '/', label: 'Overview' },
+    { path: '/designs', label: 'Designs' },
     { path: '/atrium', label: 'Atrium' },
     { path: '/worlds', label: '17 Worlds' },
     { path: '/sreesh', label: 'Sreesh' },
@@ -117,6 +119,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {currentTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+
+          {/* Quick Signature Design Switcher */}
+          <QuickDesignPicker />
 
           {/* Private Studio Workspace Gate */}
           <Link

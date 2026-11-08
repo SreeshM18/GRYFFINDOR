@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AmbientCanvas } from './components/ui/AmbientCanvas';
@@ -19,15 +19,23 @@ import { AchievementsPage } from './pages/AchievementsPage';
 import { ResumesPage } from './pages/ResumesPage';
 import { ContactPage } from './pages/ContactPage';
 
-// Private Workspace Pages
+// Private Work OS Pages
 import { LoginPage } from './pages/auth/LoginPage';
 import { DashboardLayout } from './pages/dashboard/DashboardLayout';
 import { DashboardOverview } from './pages/dashboard/DashboardOverview';
+import { AttendancePage } from './pages/dashboard/AttendancePage';
+import { LiveStatusPage } from './pages/dashboard/LiveStatusPage';
 import { DashboardTasks } from './pages/dashboard/DashboardTasks';
 import { DashboardProjects } from './pages/dashboard/DashboardProjects';
+import { InternshipsPage } from './pages/dashboard/InternshipsPage';
+import { AcademicsPage } from './pages/dashboard/AcademicsPage';
+import { LeavePage } from './pages/dashboard/LeavePage';
+import { DocumentsPage } from './pages/dashboard/DocumentsPage';
 import { DashboardNotes } from './pages/dashboard/DashboardNotes';
 import { DashboardCalendar } from './pages/dashboard/DashboardCalendar';
+import { ReportsPage } from './pages/dashboard/ReportsPage';
 import { DashboardContent } from './pages/dashboard/DashboardContent';
+import { SettingsPage } from './pages/dashboard/SettingsPage';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -43,7 +51,7 @@ export const AppContent: React.FC = () => {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const location = useLocation();
 
-  const isDashboard = location.pathname.startsWith('/dashboard');
+  const isAppArea = location.pathname.startsWith('/app') || location.pathname.startsWith('/dashboard');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -62,8 +70,8 @@ export const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-canvas text-content-primary flex flex-col font-sans transition-colors selection:bg-burgundy selection:text-white">
       <ScrollToTop />
-      {!isDashboard && <AmbientCanvas />}
-      {!isDashboard && (
+      {!isAppArea && <AmbientCanvas />}
+      {!isAppArea && (
         <Navbar
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           currentTheme={theme}
@@ -80,29 +88,49 @@ export const AppContent: React.FC = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/sreesh" element={<ProfilePage forcedId="sreesh" />} />
           <Route path="/mrithula" element={<ProfilePage forcedId="mrithula" />} />
+          <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/work" element={<ProjectsPage />} />
           <Route path="/work/:slug" element={<ProjectCaseStudyPage />} />
           <Route path="/collaborations" element={<CollaborationsPage />} />
           <Route path="/skills" element={<SkillsPage />} />
+          <Route path="/experience" element={<JourneyPage />} />
           <Route path="/journey" element={<JourneyPage />} />
           <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/resumes" element={<ResumesPage />} />
           <Route path="/contact" element={<ContactPage />} />
 
-          {/* Authentication & Private Workspace */}
+          {/* Authentication */}
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardOverview />} />
+
+          {/* Legacy /dashboard redirect */}
+          <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="/dashboard/*" element={<Navigate to="/app/dashboard" replace />} />
+
+          {/* Private Work OS System */}
+          <Route path="/app" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardOverview />} />
+            <Route path="attendance" element={<AttendancePage />} />
+            <Route path="timesheets" element={<AttendancePage />} />
+            <Route path="status" element={<LiveStatusPage />} />
             <Route path="tasks" element={<DashboardTasks />} />
             <Route path="projects" element={<DashboardProjects />} />
+            <Route path="internships" element={<InternshipsPage />} />
+            <Route path="academics" element={<AcademicsPage />} />
+            <Route path="leave" element={<LeavePage />} />
+            <Route path="documents" element={<DocumentsPage />} />
             <Route path="notes" element={<DashboardNotes />} />
             <Route path="calendar" element={<DashboardCalendar />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="analytics" element={<ReportsPage />} />
             <Route path="content" element={<DashboardContent />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="admin" element={<SettingsPage />} />
           </Route>
         </Routes>
       </main>
 
-      {!isDashboard && <Footer />}
+      {!isAppArea && <Footer />}
 
       <CommandPalette
         isOpen={commandPaletteOpen}
@@ -125,4 +153,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

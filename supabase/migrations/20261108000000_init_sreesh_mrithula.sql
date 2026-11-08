@@ -1,145 +1,165 @@
 -- ==============================================================================
--- SREESH × MRITHULA — Production PostgreSQL Schema & Supabase Configuration
--- Multi-Disciplinary Digital Studio & Dual-Identity Platform
+-- SREESH × MRITHULA — PERSONAL WORK OS
+-- Complete Enterprise PostgreSQL Schema & Supabase Configuration
+-- Two People. One Workspace. Everything Organized.
 -- ==============================================================================
 
--- 1. PROFILES TABLE (Independent credentials & public metadata)
+-- 1. PROFILES & STUDIO IDENTITY
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  slug TEXT UNIQUE NOT NULL, -- 'sreesh' or 'mrithula'
+  slug TEXT UNIQUE NOT NULL CHECK (slug IN ('sreesh', 'mrithula')),
   full_name TEXT NOT NULL,
   title TEXT NOT NULL,
   tagline TEXT,
   bio TEXT NOT NULL,
-  avatar_url TEXT,
-  resume_url TEXT,
   email TEXT NOT NULL,
-  github_url TEXT,
-  linkedin_url TEXT,
+  location TEXT DEFAULT 'Bengaluru, India',
+  timezone TEXT DEFAULT 'Asia/Kolkata',
   accent_color TEXT DEFAULT '#8B465A',
   is_public BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. PROJECTS TABLE (Solo Sreesh, Solo Mrithula, or Collaborative)
-CREATE TABLE IF NOT EXISTS public.projects (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE NOT NULL,
-  title TEXT NOT NULL,
-  tagline TEXT NOT NULL,
-  description TEXT NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('ai', 'fullstack', 'creative-ui', 'systems', 'research')),
-  author_id TEXT NOT NULL CHECK (author_id IN ('sreesh', 'mrithula', 'collaborative')),
-  featured BOOLEAN DEFAULT false,
-  status TEXT DEFAULT 'completed' CHECK (status IN ('completed', 'ongoing', 'archived')),
-  year INT NOT NULL,
-  metrics TEXT,
-  github_url TEXT,
-  live_url TEXT,
-  cover_image TEXT,
-  architecture_diagram TEXT,
-  challenge TEXT,
-  solution TEXT,
-  tech_stack TEXT[] DEFAULT '{}',
-  key_features TEXT[] DEFAULT '{}',
-  results TEXT[] DEFAULT '{}',
-  sort_order INT DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
+-- 2. LIVE USER PRESENCE & VOLUNTARY AVAILABILITY
+CREATE TABLE IF NOT EXISTS public.user_presence (
+  user_id TEXT PRIMARY KEY CHECK (user_id IN ('sreesh', 'mrithula')),
+  status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'working', 'busy', 'on_break', 'do_not_disturb', 'away', 'offline')),
+  custom_status TEXT,
+  current_project TEXT,
+  current_task TEXT,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. ACHIEVEMENTS & CREDENTIALS TABLE
-CREATE TABLE IF NOT EXISTS public.achievements (
+-- 3. EMPLOYEE-STYLE ATTENDANCE & SHIFT SESSIONS
+-- Uses server-authoritative timestamps in UTC; displays in Asia/Kolkata
+CREATE TABLE IF NOT EXISTS public.attendance_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  recipient TEXT NOT NULL CHECK (recipient IN ('sreesh', 'mrithula', 'both')),
-  title TEXT NOT NULL,
-  issuer TEXT NOT NULL,
-  issue_date TEXT NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('hackathon', 'certification', 'award', 'internship')),
-  description TEXT NOT NULL,
-  certificate_url TEXT,
-  verification_url TEXT,
-  downloadable BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 4. TIMELINE MILESTONES TABLE
-CREATE TABLE IF NOT EXISTS public.timeline_events (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  recipient TEXT NOT NULL CHECK (recipient IN ('sreesh', 'mrithula', 'both')),
-  year TEXT NOT NULL,
-  organization TEXT NOT NULL,
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('education', 'project', 'hackathon', 'internship', 'milestone')),
-  sort_order INT DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 5. WORKSPACE KANBAN TASKS TABLE (Private to Sreesh & Mrithula)
-CREATE TABLE IF NOT EXISTS public.workspace_tasks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  description TEXT,
-  assigned_to TEXT NOT NULL CHECK (assigned_to IN ('sreesh', 'mrithula', 'unassigned')),
-  status TEXT DEFAULT 'todo' CHECK (status IN ('todo', 'in_progress', 'review', 'done')),
-  priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
-  due_date DATE,
-  project_id UUID REFERENCES public.projects(id) ON DELETE SET NULL,
-  created_by UUID REFERENCES auth.users(id),
+  user_id TEXT NOT NULL CHECK (user_id IN ('sreesh', 'mrithula')),
+  work_date DATE NOT NULL,
+  clock_in_time TIMESTAMPTZ NOT NULL,
+  clock_out_time TIMESTAMPTZ,
+  total_duration_minutes INT DEFAULT 0,
+  break_duration_minutes INT DEFAULT 0,
+  status TEXT DEFAULT 'present' CHECK (status IN ('present', 'late', 'half_day', 'absent', 'leave', 'holiday')),
+  verification_type TEXT DEFAULT 'self_reported' CHECK (verification_type IN ('self_reported', 'employer_verified')),
+  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  CONSTRAINT unique_user_work_date UNIQUE (user_id, work_date)
 );
 
--- 6. WORKSPACE NOTES (Markdown Knowledge Base)
-CREATE TABLE IF NOT EXISTS public.workspace_notes (
+-- 4. BREAK SESSIONS
+CREATE TABLE IF NOT EXISTS public.attendance_breaks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  content_markdown TEXT NOT NULL,
-  author_slug TEXT NOT NULL CHECK (author_slug IN ('sreesh', 'mrithula')),
-  is_shared BOOLEAN DEFAULT true,
-  tags TEXT[] DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 7. CONTACT INQUIRIES (Private Encrypted Studio Inbox)
-CREATE TABLE IF NOT EXISTS public.contact_inquiries (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sender_name TEXT NOT NULL,
-  sender_email TEXT NOT NULL,
-  inquiry_type TEXT NOT NULL CHECK (inquiry_type IN ('collaboration', 'hire_sreesh', 'hire_mrithula', 'general')),
-  message TEXT NOT NULL,
-  is_read BOOLEAN DEFAULT false,
+  attendance_id UUID REFERENCES public.attendance_records(id) ON DELETE CASCADE,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ,
+  reason TEXT DEFAULT 'Break',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
--- ==============================================================================
+-- 5. ATTENDANCE AUDIT LOGS (Immutable record of corrections)
+CREATE TABLE IF NOT EXISTS public.attendance_audit_trail (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  attendance_id UUID REFERENCES public.attendance_records(id) ON DELETE CASCADE,
+  action TEXT NOT NULL,
+  performed_by TEXT NOT NULL,
+  reason TEXT,
+  timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. INTERNSHIP PROFILES & WORK LOGS
+CREATE TABLE IF NOT EXISTS public.internships (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL CHECK (user_id IN ('sreesh', 'mrithula')),
+  company_name TEXT NOT NULL,
+  role_title TEXT NOT NULL,
+  internship_type TEXT NOT NULL CHECK (internship_type IN ('Full-Time', 'Part-Time', 'Remote', 'On-Site')),
+  location TEXT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'upcoming')),
+  supervisor_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.internship_daily_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  internship_id UUID REFERENCES public.internships(id) ON DELETE CASCADE,
+  log_date DATE NOT NULL,
+  hours_spent NUMERIC(4, 2) NOT NULL,
+  tasks_done TEXT NOT NULL,
+  learnings TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. COLLEGE ACADEMICS (Separate from official work attendance)
+CREATE TABLE IF NOT EXISTS public.academic_courses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL CHECK (user_id IN ('sreesh', 'mrithula')),
+  code TEXT NOT NULL,
+  title TEXT NOT NULL,
+  semester TEXT NOT NULL,
+  credits INT DEFAULT 4,
+  total_classes INT DEFAULT 0,
+  attended_classes INT DEFAULT 0,
+  percentage NUMERIC(5, 2) DEFAULT 100.0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.academic_assignments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id UUID REFERENCES public.academic_courses(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  due_date DATE NOT NULL,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'submitted', 'graded')),
+  score TEXT
+);
+
+-- 8. LEAVE & VACATION MANAGEMENT
+CREATE TABLE IF NOT EXISTS public.leave_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL CHECK (user_id IN ('sreesh', 'mrithula')),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  leave_type TEXT NOT NULL CHECK (leave_type IN ('academic', 'casual', 'sick', 'vacation', 'exam_prep')),
+  reason TEXT NOT NULL,
+  status TEXT DEFAULT 'approved' CHECK (status IN ('approved', 'pending', 'rejected')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. SECURE DOCUMENT VAULT
+CREATE TABLE IF NOT EXISTS public.documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('resume', 'certificate', 'internship', 'academic', 'project', 'legal')),
+  owner_id TEXT NOT NULL CHECK (owner_id IN ('sreesh', 'mrithula', 'shared')),
+  file_type TEXT NOT NULL,
+  size_bytes INT NOT NULL,
+  storage_path TEXT,
+  is_private BOOLEAN DEFAULT false,
+  uploaded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 10. ROW LEVEL SECURITY (RLS) POLICIES
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.timeline_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.workspace_tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.workspace_notes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_presence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance_breaks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.internships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.internship_daily_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.academic_courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.leave_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 
--- PUBLIC READ ACCESS FOR SHOWCASE PORTIONS
-CREATE POLICY "Public Profiles Read" ON public.profiles FOR SELECT USING (is_public = true);
-CREATE POLICY "Public Projects Read" ON public.projects FOR SELECT USING (true);
-CREATE POLICY "Public Achievements Read" ON public.achievements FOR SELECT USING (true);
-CREATE POLICY "Public Timeline Read" ON public.timeline_events FOR SELECT USING (true);
+-- PUBLIC CAN ONLY READ PUBLIC PORTFOLIO
+CREATE POLICY "Public Profiles Select" ON public.profiles FOR SELECT USING (is_public = true);
 
--- PUBLIC WRITE FOR INQUIRIES (Rate-limited via Edge / Frontend captcha)
-CREATE POLICY "Public Inquiry Insertion" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
-
--- AUTHENTICATED STUDIO MEMBERS ONLY (SREESH & MRITHULA)
-CREATE POLICY "Members Manage Profiles" ON public.profiles FOR ALL TO authenticated USING (true);
-CREATE POLICY "Members Manage Projects" ON public.projects FOR ALL TO authenticated USING (true);
-CREATE POLICY "Members Manage Achievements" ON public.achievements FOR ALL TO authenticated USING (true);
-CREATE POLICY "Members Manage Tasks" ON public.workspace_tasks FOR ALL TO authenticated USING (true);
-CREATE POLICY "Members Manage Notes" ON public.workspace_notes FOR ALL TO authenticated USING (true);
-CREATE POLICY "Members Read Inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true);
-
+-- AUTHENTICATED WORKSPACE ACCOUNTS (SREESH & MRITHULA) HAVE FULL SECURE ACCESS
+CREATE POLICY "Workspace Authenticated Full Access" ON public.profiles FOR ALL TO authenticated USING (true);
+CREATE POLICY "Presence Full Access" ON public.user_presence FOR ALL TO authenticated USING (true);
+CREATE POLICY "Attendance Full Access" ON public.attendance_records FOR ALL TO authenticated USING (true);
+CREATE POLICY "Internship Full Access" ON public.internships FOR ALL TO authenticated USING (true);
+CREATE POLICY "Academics Full Access" ON public.academic_courses FOR ALL TO authenticated USING (true);
+CREATE POLICY "Leave Full Access" ON public.leave_requests FOR ALL TO authenticated USING (true);
+CREATE POLICY "Documents Access" ON public.documents FOR ALL TO authenticated USING (is_private = false OR owner_id = auth.uid()::text);

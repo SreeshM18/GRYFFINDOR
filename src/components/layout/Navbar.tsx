@@ -25,10 +25,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     { path: '/', label: 'Overview' },
     { path: '/sreesh', label: 'Sreesh' },
     { path: '/mrithula', label: 'Mrithula' },
-    { path: '/work', label: 'Work' },
+    { path: '/projects', label: 'Projects' },
     { path: '/collaborations', label: 'Collabs' },
     { path: '/skills', label: 'Skills' },
-    { path: '/journey', label: 'Timeline' },
+    { path: '/experience', label: 'Experience' },
+    { path: '/achievements', label: 'Honors' },
     { path: '/resumes', label: 'Resumes' },
     { path: '/contact', label: 'Contact' },
   ];
@@ -56,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               SREESH <span className="text-burgundy-soft font-normal">×</span> MRITHULA
             </span>
             <span className="text-[10px] text-content-muted font-mono tracking-widest uppercase hidden sm:block">
-              Creative Studio
+              Personal Work OS
             </span>
           </div>
         </Link>
@@ -121,13 +122,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Private Studio Workspace Gate */}
           <Link
-            to="/login"
+            to="/app/dashboard"
             onClick={() => soundFx.playClick()}
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle bg-surface-elevated hover:bg-burgundy-soft/20 text-xs font-medium text-content-primary transition-all group"
-            title="Private Collaborative Cockpit"
+            title="Private Collaborative Work OS"
           >
             <Lock className="w-3.5 h-3.5 text-content-muted group-hover:text-burgundy-soft transition-colors" />
-            <span>Workspace</span>
+            <span>Work OS</span>
           </Link>
 
           {/* Mobile Menu Button */}
@@ -165,9 +166,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             ))}
           </div>
 
-          <div className="pt-3 border-t border-border-subtle flex items-center justify-between">
+          <div className="pt-3 border-t border-border-subtle">
             <Link
-              to="/login"
+              to="/app/dashboard"
               onClick={() => {
                 soundFx.playClick();
                 setMobileMenuOpen(false);
@@ -175,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-surface-elevated text-xs font-medium text-content-primary"
             >
               <Lock className="w-3.5 h-3.5 text-burgundy-soft" />
-              <span>Access Private Workspace</span>
+              <span>Launch Work OS Command Center</span>
             </Link>
           </div>
         </div>
@@ -183,4 +184,3 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-

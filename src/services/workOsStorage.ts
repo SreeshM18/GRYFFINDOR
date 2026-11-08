@@ -215,8 +215,8 @@ class WorkOsStorage {
     return {
       userId,
       status: userId === 'sreesh' ? 'working' : 'available',
-      customStatus: userId === 'sreesh' ? 'Building Personal Work OS' : 'Reviewing design tokens',
-      currentProject: userId === 'sreesh' ? 'SREESH × MRITHULA' : 'Atelier Design System',
+      customStatus: userId === 'sreesh' ? 'Crafting The Common Room' : 'Reviewing design tokens',
+      currentProject: userId === 'sreesh' ? 'GRYFFINDOR' : 'Atelier Design System',
       currentTask: userId === 'sreesh' ? 'Architecting Work OS Modules' : 'Component hierarchy audit',
       updatedAt: 'Just now',
     };
@@ -882,8 +882,8 @@ class WorkOsStorage {
           id: `jr-${userId}-1`,
           userId,
           date: today,
-          title: 'Architecting the Sovereign Personal Work OS',
-          content: 'Reflecting on the architecture: separating our personal academic life from professional studio work creates immense clarity. Built the Web Audio procedural sound generator today for deep focus sprints.',
+          title: 'Architecting The Common Room (Gryffindor OS)',
+          content: 'Reflecting on the architecture: separating our personal academic life from professional studio work creates immense clarity. Built the Web Audio procedural sound generator today for deep focus sprints in the Common Room.',
           mood: 'focused',
           energyLevel: 5,
           tags: ['architecture', 'flow-state', 'systems'],

@@ -46,14 +46,14 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md rounded-3xl border border-border-strong bg-surface-card p-8 sm:p-10 shadow-2xl space-y-8 animate-slide-up">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-border-strong flex items-center justify-center mx-auto text-burgundy-soft">
+          <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-gold/30 flex items-center justify-center mx-auto text-gold">
             <Lock className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-content-primary">
-            Studio Private Workspace
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-content-primary tracking-tight">
+            Welcome to the Common Room.
           </h1>
-          <p className="text-xs text-content-secondary">
-            Restricted productivity cockpit for Sreesh M & Mrithula
+          <p className="text-xs text-content-secondary max-w-xs mx-auto">
+            Your personal space for everything that matters.
           </p>
         </div>
 
@@ -124,23 +124,33 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             onClick={() => soundFx.playClick()}
-            className="w-full py-3 rounded-xl bg-burgundy hover:bg-burgundy-soft text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg"
+            className="w-full py-3 rounded-xl bg-scarlet hover:bg-scarlet-hover text-gold font-semibold text-xs border border-gold/30 transition-all flex items-center justify-center gap-2 shadow-lg"
           >
-            <span>Authenticate Session</span>
+            <span>Sign In</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* One-Click Authorized Test Bypass for Evaluation */}
-        <div className="p-4 rounded-2xl border border-border-subtle bg-surface-elevated/40 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-mono text-content-primary font-semibold">
-            <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Authorized Evaluator Access</span>
+        {/* Quick Entrance Button */}
+        <div className="p-4 rounded-2xl border border-gold/20 bg-surface-elevated/40 space-y-3">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="text-content-primary font-semibold flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-gold" />
+              <span>Direct Entrance</span>
+            </span>
+            <span className="text-[10px] text-gold/80 uppercase tracking-wider">Hogwarts OS</span>
           </div>
-          <p className="text-[11px] text-content-secondary leading-relaxed">
-            Click below to inspect the private workspace without credentials:
-          </p>
-          <div className="flex gap-2 pt-1">
+
+          <button
+            type="button"
+            onClick={() => handleQuickDemoAccess(selectedRole)}
+            className="w-full py-2.5 rounded-xl bg-surface-card hover:bg-surface-elevated border border-gold/30 text-xs font-medium text-gold hover:text-gold-light flex items-center justify-center gap-2 transition-all shadow-sm"
+          >
+            <span>Continue to Workspace</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="flex gap-2 pt-1 border-t border-border-subtle">
             <button
               onClick={() => handleQuickDemoAccess('sreesh')}
               className="flex-1 py-1.5 rounded-lg border border-border-subtle bg-surface-card hover:bg-surface-elevated text-[11px] text-content-primary font-medium"

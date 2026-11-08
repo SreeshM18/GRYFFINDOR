@@ -12,12 +12,15 @@ export const Footer: React.FC = () => {
           {/* Brand Statement */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-lg text-content-primary">
-                SREESH <span className="text-burgundy-soft">×</span> MRITHULA
+              <span className="font-display font-bold text-lg text-content-primary tracking-wider">
+                GRYFFINDOR
+              </span>
+              <span className="text-xs font-mono text-gold px-2 py-0.5 rounded border border-gold/30 bg-gold/10">
+                The Common Room
               </span>
             </div>
             <p className="text-xs text-content-secondary max-w-md leading-relaxed">
-              Two independent minds. One shared creative and engineering space. Bridging autonomous AI systems, full-stack architectures, and high-craft digital interfaces.
+              Personal sanctuary, academic vault, and high-performance engineering workspace for Sreesh M and Mrithula. Autonomous systems, distributed full-stack architectures, and bespoke design craft.
             </p>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border-subtle bg-surface-elevated text-[11px] text-content-secondary">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -115,8 +118,8 @@ export const Footer: React.FC = () => {
             <span>•</span>
             <Link to="/journey" className="hover:text-content-secondary">Milestones</Link>
             <span>•</span>
-            <Link to="/login" className="hover:text-content-secondary flex items-center gap-1">
-              <span>Studio OS</span>
+            <Link to="/login" className="hover:text-gold flex items-center gap-1">
+              <span>The Common Room</span>
             </Link>
           </div>
         </div>

@@ -89,16 +89,16 @@ export const DashboardOverview: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-subtle pb-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-burgundy-soft">Studio Command Center</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-elevated text-content-muted">
-              Personal Work OS v2.0
+            <span className="text-xs font-mono uppercase tracking-widest text-gold font-semibold">GRYFFINDOR • THE COMMON ROOM</span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-elevated text-gold/80 border border-gold/30">
+              Executive Cockpit
             </span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary tracking-tight">
-            {getGreeting()}, {currentUser.name.split(' ')[0]}.
+            Welcome back, {currentUser.name.split(' ')[0]}.
           </h1>
-          <p className="text-xs sm:text-sm font-mono text-content-secondary">
-            {todayStr} • Bengaluru, India (IST)
+          <p className="text-xs sm:text-sm font-mono text-gold/90">
+            Your Common Room awaits. <span className="text-content-muted">({todayStr} • Bengaluru, IST)</span>
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export const DashboardOverview: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-3">
             <div className="flex items-center gap-2">
               <span className="font-display font-bold text-sm text-content-primary">
-                {currentUser.name} — Personal Account Cockpit
+                The Common Room — Executive Cockpit ({currentUser.name})
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 🟢 Session Protected

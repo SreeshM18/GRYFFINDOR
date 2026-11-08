@@ -61,47 +61,47 @@ export const DashboardLayout: React.FC = () => {
 
   const navSections = [
     {
-      group: '1. MY SPACE (PRIVATE)',
+      group: 'MY CHAMBER',
       items: [
-        { path: '/app/my-space', label: 'My Space & Journal', icon: Lock },
-        { path: '/app/focus', label: 'Focus & Deep Work', icon: Timer },
-        { path: '/app/analytics', label: 'My Analytics & Review', icon: TrendingUp },
-        { path: '/app/devices', label: 'My Devices (Mac, iOS, Win)', icon: Laptop },
+        { path: '/app/dashboard', label: 'The Common Room', icon: LayoutDashboard },
+        { path: '/app/my-space', label: 'My Chamber & Journal', icon: Lock },
+        { path: '/app/focus', label: 'Chamber of Focus', icon: Timer },
+        { path: '/app/analytics', label: 'The Observatory', icon: TrendingUp },
+        { path: '/app/devices', label: 'Devices & Connected Apps', icon: Laptop },
       ],
     },
     {
-      group: '2. OUR WORKSPACE (SHARED)',
+      group: 'THE GREAT HALL (COLLABORATION)',
       items: [
-        { path: '/app/dashboard', label: 'Command Center', icon: LayoutDashboard },
-        { path: '/app/tasks', label: 'Kanban Tasks', icon: CheckSquare },
-        { path: '/app/projects', label: 'Projects & Repos', icon: FolderGit2 },
-        { path: '/app/habits', label: 'Habits & Discipline', icon: Flame },
-        { path: '/app/calendar', label: 'Calendar & Deadlines', icon: Calendar },
-        { path: '/app/notes', label: 'Markdown Knowledge', icon: BookOpen },
-        { path: '/app/messages', label: 'Co-Founder Channel', icon: MessageSquare },
+        { path: '/app/tasks', label: 'My Quests (Tasks)', icon: CheckSquare },
+        { path: '/app/projects', label: 'The Quest Board (Projects)', icon: FolderGit2 },
+        { path: '/app/calendar', label: 'The Timekeeper (Calendar)', icon: Calendar },
+        { path: '/app/notes', label: 'The Library (Knowledge)', icon: BookOpen },
+        { path: '/app/messages', label: 'Owl Post (Direct Channel)', icon: MessageSquare },
+        { path: '/app/habits', label: 'Discipline & Daily Habits', icon: Flame },
         { path: '/app/ideas', label: 'Ideas & ADR Decisions', icon: Lightbulb },
       ],
     },
     {
-      group: '3. CAREER & CLIENTS',
+      group: 'CAREER & ACADEMICS',
       items: [
+        { path: '/app/academics', label: 'College Academics (S7)', icon: GraduationCap },
+        { path: '/app/internships', label: 'Internships & Guild Logs', icon: Briefcase },
         { path: '/app/career', label: 'Career & Placements', icon: Briefcase },
-        { path: '/app/internships', label: 'Internships & Logs', icon: Briefcase },
-        { path: '/app/academics', label: 'College Academics', icon: GraduationCap },
+        { path: '/app/documents', label: 'The Archives (Resumes)', icon: FileText },
         { path: '/app/studio', label: 'Client & Freelance Hub', icon: Compass },
-        { path: '/app/documents', label: 'Documents & Resumes', icon: FileText },
         { path: '/app/leave', label: 'Leave & Time-Off', icon: Sun },
       ],
     },
     {
-      group: '4. MANAGEMENT & OPS',
+      group: 'OPERATIONS & THE VAULT',
       items: [
-        { path: '/app/attendance', label: 'Attendance & Clock-In', icon: Clock },
-        { path: '/app/status', label: 'Live Work Status', icon: Activity },
-        { path: '/app/finance', label: 'Studio Finance & Subs', icon: CreditCard },
+        { path: '/app/attendance', label: 'The Ledger (Clock-In)', icon: Clock },
+        { path: '/app/status', label: 'Live Presence Status', icon: Activity },
+        { path: '/app/finance', label: 'The Vault (Studio Finance)', icon: CreditCard },
         { path: '/app/reports', label: 'Reports & Timesheets', icon: BarChart3 },
-        { path: '/app/content', label: 'Live Portfolio CMS', icon: FileEdit },
-        { path: '/app/settings', label: 'Settings & Privacy', icon: Settings },
+        { path: '/app/content', label: 'Portfolio CMS', icon: FileEdit },
+        { path: '/app/settings', label: 'The Control Room', icon: Settings },
       ],
     },
   ];
@@ -113,8 +113,8 @@ export const DashboardLayout: React.FC = () => {
       {/* Mobile Top Header */}
       <div className="md:hidden border-b border-border-subtle bg-surface-card p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-display font-bold text-sm text-content-primary">PERSONAL WORK OS</span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-burgundy/20 text-burgundy-soft">v2.0</span>
+          <span className="font-display font-extrabold text-sm tracking-widest text-content-primary">GRYFFINDOR</span>
+          <span className="text-[10px] font-serif italic text-gold">The Common Room</span>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -132,15 +132,13 @@ export const DashboardLayout: React.FC = () => {
         }`}
       >
         <div className="space-y-6">
-          {/* Workspace Title */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-sm tracking-tight text-content-primary">
-                SREESH × MRITHULA
-              </span>
+          {/* Elegant Gryffindor Typography Header (Zero Corporate Logo) */}
+          <div className="space-y-0.5">
+            <div className="font-display font-extrabold text-base tracking-[0.2em] text-content-primary">
+              GRYFFINDOR
             </div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-burgundy-soft">
-              Personal Work OS
+            <p className="font-serif italic text-xs text-gold tracking-wide">
+              The Common Room
             </p>
           </div>
 
@@ -154,7 +152,7 @@ export const DashboardLayout: React.FC = () => {
               }`}
             >
               <Lock className="w-2.5 h-2.5" />
-              <span>My Space</span>
+              <span>My Chamber</span>
             </Link>
             <Link
               to="/app/dashboard"
@@ -163,7 +161,7 @@ export const DashboardLayout: React.FC = () => {
                 location.pathname === '/app/dashboard' || location.pathname === '/app/tasks' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
               }`}
             >
-              <span>Workspace</span>
+              <span>Common Room</span>
             </Link>
             <Link
               to="/app/attendance"
@@ -172,7 +170,7 @@ export const DashboardLayout: React.FC = () => {
                 location.pathname === '/app/attendance' || location.pathname === '/app/reports' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
               }`}
             >
-              <span>Operations</span>
+              <span>The Ledger</span>
             </Link>
             <Link
               to="/"
@@ -180,7 +178,7 @@ export const DashboardLayout: React.FC = () => {
               className="p-1.5 rounded-lg text-center transition-colors text-content-secondary hover:text-content-primary flex items-center justify-center gap-1"
             >
               <Globe className="w-2.5 h-2.5" />
-              <span>Portfolio</span>
+              <span>Folio</span>
             </Link>
           </div>
 

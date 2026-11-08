@@ -162,3 +162,4 @@ export const AreaTrendChart: React.FC<AreaTrendChartProps> = ({
     </div>
   );
 };
+

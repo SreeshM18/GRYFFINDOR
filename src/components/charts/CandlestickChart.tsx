@@ -362,3 +362,4 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({
     </div>
   );
 };
+

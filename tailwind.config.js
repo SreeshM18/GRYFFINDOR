@@ -24,11 +24,24 @@ export default {
           muted: 'var(--text-muted)',
         },
         burgundy: {
-          DEFAULT: '#6E2034',
-          soft: '#8F3B52',
-          glow: 'rgba(110, 32, 52, 0.35)',
-          deep: '#42101E',
+          DEFAULT: '#5C1726',
+          soft: '#7B2538',
+          glow: 'rgba(92, 23, 38, 0.35)',
+          deep: '#380E17',
         },
+        scarlet: {
+          DEFAULT: '#740001',
+          soft: '#8F1B1C',
+          glow: 'rgba(116, 0, 1, 0.3)',
+        },
+        gold: {
+          DEFAULT: '#D3A625',
+          soft: '#E6C875',
+          dark: '#9E7812',
+          glow: 'rgba(211, 166, 37, 0.25)',
+        },
+        obsidian: '#0B0B0C',
+        graphite: '#1C1C1E',
         terracotta: {
           DEFAULT: '#D2583E',
           soft: '#E4745D',

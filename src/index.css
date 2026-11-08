@@ -3,21 +3,24 @@
 @tailwind utilities;
 
 :root {
-  /* Dark Mode Default (Warm Obsidian & Bone Palette) */
-  --bg-canvas: #0E0D0C;
-  --bg-surface-card: #171615;
-  --bg-surface-elevated: #22201E;
-  --bg-surface-glass: rgba(23, 22, 21, 0.78);
+  /* Gryffindor Dark Academia Default (Obsidian, Scarlet & Antique Gold Palette) */
+  --bg-canvas: #0B0B0C;
+  --bg-surface-card: #141416;
+  --bg-surface-elevated: #1C1C1E;
+  --bg-surface-glass: rgba(20, 20, 22, 0.85);
 
-  --text-primary: #F4EFE6;
-  --text-secondary: #A0988C;
-  --text-muted: #6C655A;
+  --text-primary: #F5F0E6;
+  --text-secondary: #B3ABA0;
+  --text-muted: #7A7268;
 
-  --border-subtle: #24221F;
-  --border-strong: #33302B;
+  --border-subtle: #242428;
+  --border-strong: #383840;
 
-  --accent-burgundy: #722237;
-  --accent-soft-burgundy: #963D54;
+  --accent-burgundy: #5C1726;
+  --accent-soft-burgundy: #7B2538;
+  --accent-scarlet: #740001;
+  --accent-gold: #D3A625;
+  --accent-gold-soft: #E6C875;
 
   --sreesh-accent: #415A6C;
   --mrithula-accent: #8A3B4E;

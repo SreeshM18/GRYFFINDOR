@@ -46,18 +46,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         <Link
           to="/"
           onClick={() => soundFx.playClick()}
-          className="flex items-center gap-2.5 group"
-          aria-label="Sreesh and Mrithula Studio Home"
+          className="flex items-center gap-2 group"
+          aria-label="Gryffindor — The Common Room"
         >
-          <div className="w-8 h-8 rounded-lg bg-surface-card border border-border-strong flex items-center justify-center font-display font-bold text-xs tracking-wider text-content-primary group-hover:border-burgundy-soft transition-colors">
-            S<span className="text-burgundy-soft">×</span>M
-          </div>
           <div className="flex flex-col">
-            <span className="font-display font-semibold text-sm tracking-tight text-content-primary flex items-center gap-1.5">
-              SREESH <span className="text-burgundy-soft font-normal">×</span> MRITHULA
+            <span className="font-display font-bold text-sm tracking-widest text-content-primary group-hover:text-gold transition-colors">
+              GRYFFINDOR
             </span>
-            <span className="text-[10px] text-content-muted font-mono tracking-widest uppercase hidden sm:block">
-              Personal Work OS
+            <span className="text-[10px] text-gold/80 font-mono tracking-wider lowercase">
+              the common room
             </span>
           </div>
         </Link>
@@ -124,11 +121,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Link
             to="/app/dashboard"
             onClick={() => soundFx.playClick()}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle bg-surface-elevated hover:bg-burgundy-soft/20 text-xs font-medium text-content-primary transition-all group"
-            title="Private Collaborative Work OS"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gold/30 bg-surface-elevated hover:bg-gold/10 text-xs font-medium text-gold hover:text-gold-light transition-all group"
+            title="The Common Room Workspace"
           >
-            <Lock className="w-3.5 h-3.5 text-content-muted group-hover:text-burgundy-soft transition-colors" />
-            <span>Work OS</span>
+            <Lock className="w-3.5 h-3.5 text-gold/80 group-hover:text-gold transition-colors" />
+            <span>The Common Room</span>
           </Link>
 
           {/* Mobile Menu Button */}
@@ -173,10 +170,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 soundFx.playClick();
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-surface-elevated text-xs font-medium text-content-primary"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-surface-elevated text-xs font-medium text-gold border border-gold/30"
             >
-              <Lock className="w-3.5 h-3.5 text-burgundy-soft" />
-              <span>Launch Work OS Command Center</span>
+              <Lock className="w-3.5 h-3.5 text-gold" />
+              <span>Enter The Common Room</span>
             </Link>
           </div>
         </div>

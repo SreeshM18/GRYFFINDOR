@@ -93,3 +93,4 @@ export const DonutProgressChart: React.FC<DonutProgressChartProps> = ({
     </div>
   );
 };
+

@@ -4,6 +4,7 @@ import { Mail, ArrowRight, Check, Copy, FileText, ArrowLeftRight } from 'lucide-
 import { GithubIcon, LinkedinIcon } from '../components/ui/Icons';
 import { PROFILES_DATA, INITIAL_PROJECTS, INITIAL_TIMELINE } from '../data/initialData';
 import { soundFx } from '../components/ui/AudioSynthesizer';
+import { PerspectiveCard } from '../components/ui/PerspectiveCard';
 import { ProfileId } from '../types';
 
 export const ProfilePage: React.FC<{ forcedId?: ProfileId }> = ({ forcedId }) => {
@@ -64,16 +65,18 @@ export const ProfilePage: React.FC<{ forcedId?: ProfileId }> = ({ forcedId }) =>
         </Link>
       </div>
 
-      {/* Metrics & Quick Action Bar */}
+      {/* Metrics & Quick Action Bar with 3D Perspective Tilt */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {profile.stats.map((stat, i) => (
-          <div key={i} className="p-5 rounded-2xl border border-border-subtle bg-surface-card space-y-1">
-            <span className="text-2xl sm:text-3xl font-display font-bold text-content-primary">
-              {stat.value}
-            </span>
-            <h4 className="text-xs font-semibold text-content-secondary">{stat.label}</h4>
-            <p className="text-[10px] font-mono text-content-muted">{stat.sub}</p>
-          </div>
+          <PerspectiveCard key={i} intensity={14} glareOpacity={0.25} className="h-full">
+            <div className="h-full p-5 rounded-2xl border border-gold/30 bg-surface-card space-y-1 shadow-sm hover:border-gold/60 transition-colors">
+              <span className="text-2xl sm:text-3xl font-display font-extrabold text-content-primary">
+                {stat.value}
+              </span>
+              <h4 className="text-xs font-semibold text-gold">{stat.label}</h4>
+              <p className="text-[10px] font-mono text-content-muted">{stat.sub}</p>
+            </div>
+          </PerspectiveCard>
         ))}
       </div>
 

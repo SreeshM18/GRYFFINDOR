@@ -13,6 +13,9 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    watch: {
+      ignored: ['**/Use this now/**', '**/.git/**', '**/dist/**'],
+    },
   },
 });
 

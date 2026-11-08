@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight, ArrowUpRight, Sparkles, LayoutGrid, List, ChevronDown, ChevronUp, ExternalLink, Code2 } from 'lucide-react';
+import { Search, ArrowRight, ArrowUpRight, Sparkles, LayoutGrid, List, ChevronDown, ChevronUp, ExternalLink, Code2, Box } from 'lucide-react';
 import { GithubIcon } from '../components/ui/Icons';
 import { INITIAL_PROJECTS } from '../data/initialData';
 import { soundFx } from '../components/ui/AudioSynthesizer';
+import { PerspectiveCard } from '../components/ui/PerspectiveCard';
 
 export const ProjectsPage: React.FC = () => {
   const [authorFilter, setAuthorFilter] = useState<'all' | 'sreesh' | 'mrithula' | 'collaborative'>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'ai' | 'creative-ui' | 'fullstack' | 'systems'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'index'>('grid');
+  const [viewMode, setViewMode] = useState<'spatial' | 'grid' | 'index'>('spatial');
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
 
   const filtered = INITIAL_PROJECTS.filter((project) => {
@@ -112,31 +113,46 @@ export const ProjectsPage: React.FC = () => {
               ))}
             </div>
 
-            {/* View Mode Switcher (Killer Portfolio Inspired: Cards vs Index) */}
-            <div className="flex rounded-xl p-1 bg-surface-elevated border border-border-subtle text-xs">
+            {/* View Mode Switcher (Killer Portfolio Inspired: 3D Spatial vs Cards vs Index) */}
+            <div className="flex rounded-xl p-1 bg-surface-elevated border border-border-subtle text-xs gap-1">
+              <button
+                onClick={() => {
+                  soundFx.playClick();
+                  setViewMode('spatial');
+                }}
+                className={`p-1.5 px-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                  viewMode === 'spatial' ? 'bg-burgundy text-gold font-bold shadow-sm' : 'text-content-muted hover:text-content-primary'
+                }`}
+                title="3D Spatial Perspective"
+              >
+                <Box className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px] font-mono">3D Spatial</span>
+              </button>
               <button
                 onClick={() => {
                   soundFx.playClick();
                   setViewMode('grid');
                 }}
-                className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                  viewMode === 'grid' ? 'bg-burgundy text-white' : 'text-content-muted hover:text-content-primary'
+                className={`p-1.5 px-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                  viewMode === 'grid' ? 'bg-burgundy text-white font-bold' : 'text-content-muted hover:text-content-primary'
                 }`}
                 title="Visual Card Grid"
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px] font-mono">Grid</span>
               </button>
               <button
                 onClick={() => {
                   soundFx.playClick();
                   setViewMode('index');
                 }}
-                className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                  viewMode === 'index' ? 'bg-burgundy text-white' : 'text-content-muted hover:text-content-primary'
+                className={`p-1.5 px-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                  viewMode === 'index' ? 'bg-burgundy text-white font-bold' : 'text-content-muted hover:text-content-primary'
                 }`}
                 title="Index Table (Alright Studio Style)"
               >
                 <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px] font-mono">Index</span>
               </button>
             </div>
           </div>
@@ -157,6 +173,64 @@ export const ProjectsPage: React.FC = () => {
           >
             Reset all filters
           </button>
+        </div>
+      ) : viewMode === 'spatial' ? (
+        /* 3D SPATIAL PERSPECTIVE MODE (Inspired by Eyeballs.co, Fudali, Likely Story) */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filtered.map((proj) => (
+            <PerspectiveCard key={proj.id} intensity={16} glareOpacity={0.3} className="h-full">
+              <div className="h-full p-7 rounded-3xl border border-gold/30 bg-gradient-to-br from-[#120E10] to-[#0A0A0B] flex flex-col justify-between space-y-6 shadow-xl hover:border-gold/60 transition-colors group">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-[11px] font-mono border-b border-border-subtle pb-3">
+                    <span className="uppercase text-gold font-bold tracking-wider">{proj.category}</span>
+                    <span className="text-content-muted">{proj.year}</span>
+                  </div>
+
+                  <h3
+                    className="text-xl font-display font-extrabold text-content-primary group-hover:text-gold transition-colors leading-snug"
+                    style={{ transform: 'translateZ(20px)' }}
+                  >
+                    {proj.title}
+                  </h3>
+                  <p
+                    className="text-xs text-content-secondary line-clamp-3 leading-relaxed"
+                    style={{ transform: 'translateZ(10px)' }}
+                  >
+                    {proj.description}
+                  </p>
+
+                  <div
+                    className="flex flex-wrap gap-1.5 pt-2"
+                    style={{ transform: 'translateZ(25px)' }}
+                  >
+                    {proj.tags.slice(0, 3).map((tag, i) => (
+                      <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-surface-elevated text-gold/90 border border-gold/20">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-border-subtle flex items-center justify-between text-xs font-mono">
+                  <span className="text-[11px] text-content-muted">
+                    {proj.author === 'collaborative'
+                      ? 'Joint Work'
+                      : proj.author === 'sreesh'
+                      ? 'Sreesh M'
+                      : 'Mrithula'}
+                  </span>
+                  <Link
+                    to={`/work/${proj.slug}`}
+                    onClick={() => soundFx.playClick()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-gold/15 text-gold font-semibold text-xs transition-colors border border-gold/30"
+                  >
+                    <span>View 3D Spec</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </PerspectiveCard>
+          ))}
         </div>
       ) : viewMode === 'grid' ? (
         /* VISUAL GRID MODE */

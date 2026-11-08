@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Sparkles, Terminal, Palette, Cpu, ShieldCheck, Compass, GitMerge } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Sparkles, Terminal, Palette, Cpu, ShieldCheck, Compass, GitMerge, Box, Activity } from 'lucide-react';
 import { soundFx } from '../components/ui/AudioSynthesizer';
 import { PROFILES_DATA, INITIAL_PROJECTS } from '../data/initialData';
+import { PerspectiveCard } from '../components/ui/PerspectiveCard';
+import { DimensionalHUD, DimensionMode } from '../components/ui/DimensionalHUD';
+import { KillerDimensionShowcase } from '../components/showcase/KillerDimensionShowcase';
 
 export const HomePage: React.FC = () => {
   const [activeSplit, setActiveSplit] = useState<'sreesh' | 'mrithula' | null>(null);
+  const [currentDimension, setCurrentDimension] = useState<DimensionMode>('spatial');
 
   const antigravity = INITIAL_PROJECTS.find((p) => p.id === 'antigravity-neural-os')!;
   const atelier = INITIAL_PROJECTS.find((p) => p.id === 'studio-design-system')!;
@@ -14,6 +18,8 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="relative z-10 space-y-40 pb-36">
+      {/* Floating Spatial Telemetry HUD (Inspired by Aritro.xyz & Yuki Asakura) */}
+      <DimensionalHUD onDimensionChange={(dim) => setCurrentDimension(dim)} />
       {/* =========================================================================
           01. ASYMMETRIC OVERSIZED EDITORIAL HERO
       ========================================================================= */}
@@ -171,111 +177,122 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          03. DUAL CREATOR DEEP-DIVE (Split Editorial Profiles)
+          03. DUAL CREATOR DEEP-DIVE (Split Editorial Profiles with 3D Tilt)
       ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* SREESH M ESSAY */}
-          <div className="p-8 sm:p-12 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-sreesh-light transition-all duration-300">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="px-3 py-1 rounded-full bg-sreesh/20 text-sreesh-light border border-sreesh/30">
-                  Profile 01
-                </span>
-                <span className="text-content-muted">Autonomous AI & Systems</span>
-              </div>
-
-              <div>
-                <h3 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary">
-                  Sreesh M
-                </h3>
-                <p className="text-xs font-mono text-sreesh-light mt-1.5">
-                  Computer Science Engineer • System Architect
-                </p>
-              </div>
-
-              <div className="space-y-4 text-xs sm:text-sm text-content-secondary leading-relaxed font-sans">
-                <p>
-                  "I look at digital systems from the ground up: how data propagates across distributed nodes, how long-term memory can be retained without catastrophic forgetting, and how real-time WebGL loops maintain sustained 60 FPS under heavy geometry loads."
-                </p>
-                <p>
-                  Specializing in agentic cognitive architectures, deterministic graph traversal, zero-trust security boundaries, and high-throughput TypeScript microservices.
-                </p>
-              </div>
-
-              <div className="pt-2 flex flex-wrap gap-2">
-                {PROFILES_DATA.sreesh.focusAreas.slice(0, 3).map((f, i) => (
-                  <span key={i} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-surface-elevated text-content-secondary border border-border-subtle">
-                    {f}
+          <PerspectiveCard intensity={12} glareOpacity={0.25} className="h-full">
+            <div className="h-full p-8 sm:p-12 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-sreesh-light transition-all duration-300">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="px-3 py-1 rounded-full bg-sreesh/20 text-sreesh-light border border-sreesh/30">
+                    Profile 01
                   </span>
-                ))}
+                  <span className="text-content-muted">Autonomous AI & Systems</span>
+                </div>
+
+                <div>
+                  <h3 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary">
+                    Sreesh M
+                  </h3>
+                  <p className="text-xs font-mono text-sreesh-light mt-1.5">
+                    Computer Science Engineer • System Architect
+                  </p>
+                </div>
+
+                <div className="space-y-4 text-xs sm:text-sm text-content-secondary leading-relaxed font-sans">
+                  <p>
+                    "I look at digital systems from the ground up: how data propagates across distributed nodes, how long-term memory can be retained without catastrophic forgetting, and how real-time WebGL loops maintain sustained 60 FPS under heavy geometry loads."
+                  </p>
+                  <p>
+                    Specializing in agentic cognitive architectures, deterministic graph traversal, zero-trust security boundaries, and high-throughput TypeScript microservices.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {PROFILES_DATA.sreesh.focusAreas.slice(0, 3).map((f, i) => (
+                    <span key={i} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-surface-elevated text-content-secondary border border-border-subtle">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
+                <Link
+                  to="/sreesh"
+                  onClick={() => soundFx.playClick()}
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-content-primary hover:text-sreesh-light transition-colors group"
+                >
+                  <span>Read Sreesh's Complete Story</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <span className="font-mono text-[11px] text-content-muted">15+ Shipped Systems</span>
               </div>
             </div>
-
-            <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
-              <Link
-                to="/sreesh"
-                onClick={() => soundFx.playClick()}
-                className="inline-flex items-center gap-2 text-xs font-semibold text-content-primary hover:text-sreesh-light transition-colors group"
-              >
-                <span>Read Sreesh's Complete Story</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <span className="font-mono text-[11px] text-content-muted">15+ Shipped Systems</span>
-            </div>
-          </div>
+          </PerspectiveCard>
 
           {/* MRITHULA ESSAY */}
-          <div className="p-8 sm:p-12 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-mrithula-light transition-all duration-300">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="px-3 py-1 rounded-full bg-mrithula/20 text-mrithula-light border border-mrithula/30">
-                  Profile 02
-                </span>
-                <span className="text-content-muted">Design Systems & Product</span>
-              </div>
-
-              <div>
-                <h3 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary">
-                  Mrithula
-                </h3>
-                <p className="text-xs font-mono text-mrithula-light mt-1.5">
-                  Digital Product Designer • Creative Technologist
-                </p>
-              </div>
-
-              <div className="space-y-4 text-xs sm:text-sm text-content-secondary leading-relaxed font-sans">
-                <p>
-                  "A product's aesthetic value is directly tied to its usability. I build comprehensive design systems that bridge Figma variables with production CSS custom properties, ensuring every interaction feels physically responsive, natural, and accessible."
-                </p>
-                <p>
-                  Focused on atomic component scalability, user research methodologies, WCAG 2.1 AA contrast compliance, and seamless design-to-engineering delivery.
-                </p>
-              </div>
-
-              <div className="pt-2 flex flex-wrap gap-2">
-                {PROFILES_DATA.mrithula.focusAreas.slice(0, 3).map((f, i) => (
-                  <span key={i} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-surface-elevated text-content-secondary border border-border-subtle">
-                    {f}
+          <PerspectiveCard intensity={12} glareOpacity={0.25} className="h-full">
+            <div className="h-full p-8 sm:p-12 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-mrithula-light transition-all duration-300">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="px-3 py-1 rounded-full bg-mrithula/20 text-mrithula-light border border-mrithula/30">
+                    Profile 02
                   </span>
-                ))}
+                  <span className="text-content-muted">Design Systems & Product</span>
+                </div>
+
+                <div>
+                  <h3 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary">
+                    Mrithula
+                  </h3>
+                  <p className="text-xs font-mono text-mrithula-light mt-1.5">
+                    Digital Product Designer • Creative Technologist
+                  </p>
+                </div>
+
+                <div className="space-y-4 text-xs sm:text-sm text-content-secondary leading-relaxed font-sans">
+                  <p>
+                    "A product's aesthetic value is directly tied to its usability. I build comprehensive design systems that bridge Figma variables with production CSS custom properties, ensuring every interaction feels physically responsive, natural, and accessible."
+                  </p>
+                  <p>
+                    Focused on atomic component scalability, user research methodologies, WCAG 2.1 AA contrast compliance, and seamless design-to-engineering delivery.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {PROFILES_DATA.mrithula.focusAreas.slice(0, 3).map((f, i) => (
+                    <span key={i} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-surface-elevated text-content-secondary border border-border-subtle">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
+                <Link
+                  to="/mrithula"
+                  onClick={() => soundFx.playClick()}
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-content-primary hover:text-mrithula-light transition-colors group"
+                >
+                  <span>Read Mrithula's Complete Story</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <span className="font-mono text-[11px] text-content-muted">Atomic Design Systems</span>
               </div>
             </div>
-
-            <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
-              <Link
-                to="/mrithula"
-                onClick={() => soundFx.playClick()}
-                className="inline-flex items-center gap-2 text-xs font-semibold text-content-primary hover:text-mrithula-light transition-colors group"
-              >
-                <span>Read Mrithula's Complete Story</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <span className="font-mono text-[11px] text-content-muted">Atomic Design Systems</span>
-            </div>
-          </div>
+          </PerspectiveCard>
         </div>
       </section>
+
+      {/* =========================================================================
+          03.5 MULTI-DIMENSIONAL SHOWCASE (Synthesizing 17 Global Killer Portfolios)
+      ========================================================================= */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-8">
+        <KillerDimensionShowcase />
+      </div>
 
       {/* =========================================================================
           04. EXPRESSIVE EDITORIAL PROJECT SHOWCASES (Replacing Repetitive Cards)
@@ -299,171 +316,181 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        {/* COMPOSITION 1: ANTIGRAVITY NEURAL OS — Full Width Monumental Editorial */}
-        <article className="p-8 sm:p-14 rounded-3xl border border-border-strong bg-surface-card space-y-10 group hover:border-sreesh-light transition-all duration-300">
-          <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-sreesh-light" />
-              <span className="text-sreesh-light font-bold">CASE STUDY 01</span>
-              <span className="text-content-muted">• {antigravity.year}</span>
+        {/* COMPOSITION 1: ANTIGRAVITY NEURAL OS — Full Width Monumental Editorial with 3D Depth */}
+        <PerspectiveCard intensity={8} glareOpacity={0.2} className="w-full">
+          <article className="p-8 sm:p-14 rounded-3xl border border-border-strong bg-surface-card space-y-10 group hover:border-sreesh-light transition-all duration-300">
+            <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+              <div className="flex items-center gap-3">
+                <span className="w-2 h-2 rounded-full bg-sreesh-light" />
+                <span className="text-sreesh-light font-bold">CASE STUDY 01</span>
+                <span className="text-content-muted">• {antigravity.year}</span>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-surface-elevated border border-border-subtle text-content-muted">
+                Architected by Sreesh M
+              </span>
             </div>
-            <span className="px-3 py-1 rounded-full bg-surface-elevated border border-border-subtle text-content-muted">
-              Architected by Sreesh M
-            </span>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-7 space-y-4">
-              <h3 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary tracking-tight group-hover:text-sreesh-light transition-colors">
-                {antigravity.title}
-              </h3>
-              <p className="font-serif italic text-lg sm:text-xl text-content-secondary leading-snug">
-                "{antigravity.tagline}"
-              </p>
-              <p className="text-xs sm:text-sm text-content-secondary leading-relaxed pt-2">
-                {antigravity.description}
-              </p>
-              <div className="flex flex-wrap gap-2 pt-3">
-                {antigravity.tags.map((t, idx) => (
-                  <span key={idx} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-surface-elevated text-content-secondary border border-border-subtle">
-                    {t}
-                  </span>
-                ))}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="lg:col-span-7 space-y-4">
+                <h3 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary tracking-tight group-hover:text-sreesh-light transition-colors">
+                  {antigravity.title}
+                </h3>
+                <p className="font-serif italic text-lg sm:text-xl text-content-secondary leading-snug">
+                  "{antigravity.tagline}"
+                </p>
+                <p className="text-xs sm:text-sm text-content-secondary leading-relaxed pt-2">
+                  {antigravity.description}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-3">
+                  {antigravity.tags.map((t, idx) => (
+                    <span key={idx} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-surface-elevated text-content-secondary border border-border-subtle">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Architectural Highlight Callout */}
+              <div className="lg:col-span-5 p-6 rounded-2xl bg-surface-elevated/60 border border-border-subtle space-y-4">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-content-muted uppercase">Architecture Metric</span>
+                  <Sparkles className="w-4 h-4 text-sreesh-light" />
+                </div>
+                <p className="text-xl sm:text-2xl font-display font-bold text-content-primary">
+                  {antigravity.metrics}
+                </p>
+                <div className="text-xs text-content-secondary space-y-2 border-t border-border-subtle pt-3">
+                  <p><strong>Challenge:</strong> {antigravity.challenge}</p>
+                  <p><strong>Solution:</strong> {antigravity.solution}</p>
+                </div>
               </div>
             </div>
 
-            {/* Architectural Highlight Callout */}
-            <div className="lg:col-span-5 p-6 rounded-2xl bg-surface-elevated/60 border border-border-subtle space-y-4">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-content-muted uppercase">Architecture Metric</span>
-                <Sparkles className="w-4 h-4 text-sreesh-light" />
-              </div>
-              <p className="text-xl sm:text-2xl font-display font-bold text-content-primary">
-                {antigravity.metrics}
-              </p>
-              <div className="text-xs text-content-secondary space-y-2 border-t border-border-subtle pt-3">
-                <p><strong>Challenge:</strong> {antigravity.challenge}</p>
-                <p><strong>Solution:</strong> {antigravity.solution}</p>
-              </div>
+            <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
+              <span className="font-mono text-xs text-content-muted">Verified Autonomous Execution</span>
+              <Link
+                to={`/work/${antigravity.slug}`}
+                onClick={() => soundFx.playClick()}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-elevated hover:bg-sreesh/20 text-xs font-semibold text-content-primary transition-colors"
+              >
+                <span>Read Architectural Case Study</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-          </div>
-
-          <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
-            <span className="font-mono text-xs text-content-muted">Verified Autonomous Execution</span>
-            <Link
-              to={`/work/${antigravity.slug}`}
-              onClick={() => soundFx.playClick()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-elevated hover:bg-sreesh/20 text-xs font-semibold text-content-primary transition-colors"
-            >
-              <span>Read Architectural Case Study</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </article>
+          </article>
+        </PerspectiveCard>
 
         {/* COMPOSITION 2 & 3: ASYMMETRIC DUAL FEATURE SPREAD */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* COMPOSITION 2: ATELIER DESIGN SYSTEM (Mrithula) */}
-          <article className="lg:col-span-6 p-8 sm:p-10 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-mrithula-light transition-all duration-300">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-mrithula-light" />
-                  <span className="text-mrithula-light font-bold">CASE STUDY 02</span>
+          <div className="lg:col-span-6">
+            <PerspectiveCard intensity={10} glareOpacity={0.2} className="h-full">
+              <article className="h-full p-8 sm:p-10 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-mrithula-light transition-all duration-300">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-mrithula-light" />
+                      <span className="text-mrithula-light font-bold">CASE STUDY 02</span>
+                    </div>
+                    <span className="text-content-muted">Designed by Mrithula</span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-2xl sm:text-4xl font-display font-extrabold text-content-primary group-hover:text-mrithula-light transition-colors">
+                      {atelier.title}
+                    </h3>
+                    <p className="font-serif italic text-base text-content-secondary">
+                      "{atelier.tagline}"
+                    </p>
+                    <p className="text-xs text-content-secondary leading-relaxed">
+                      {atelier.description}
+                    </p>
+                  </div>
+
+                  {/* Visual Design Token Preview Chips */}
+                  <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border-subtle space-y-3">
+                    <span className="text-[10px] font-mono uppercase text-content-muted">Semantic Token Specimen</span>
+                    <div className="flex gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-burgundy flex items-center justify-center text-[10px] font-mono text-white" title="#722237">B</div>
+                      <div className="w-8 h-8 rounded-lg bg-surface-elevated border border-border-strong flex items-center justify-center text-[10px] font-mono text-content-primary" title="Elevated">E</div>
+                      <div className="w-8 h-8 rounded-lg bg-mrithula flex items-center justify-center text-[10px] font-mono text-white" title="Rose">R</div>
+                      <div className="w-8 h-8 rounded-lg bg-sreesh flex items-center justify-center text-[10px] font-mono text-white" title="Slate">S</div>
+                    </div>
+                    <p className="text-[11px] font-mono text-emerald-400">✓ 100% WCAG 2.1 AA Contrast Compliance</p>
+                  </div>
                 </div>
-                <span className="text-content-muted">Designed by Mrithula</span>
-              </div>
 
-              <div className="space-y-3">
-                <h3 className="text-2xl sm:text-4xl font-display font-extrabold text-content-primary group-hover:text-mrithula-light transition-colors">
-                  {atelier.title}
-                </h3>
-                <p className="font-serif italic text-base text-content-secondary">
-                  "{atelier.tagline}"
-                </p>
-                <p className="text-xs text-content-secondary leading-relaxed">
-                  {atelier.description}
-                </p>
-              </div>
-
-              {/* Visual Design Token Preview Chips */}
-              <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border-subtle space-y-3">
-                <span className="text-[10px] font-mono uppercase text-content-muted">Semantic Token Specimen</span>
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-burgundy flex items-center justify-center text-[10px] font-mono text-white" title="#722237">B</div>
-                  <div className="w-8 h-8 rounded-lg bg-surface-elevated border border-border-strong flex items-center justify-center text-[10px] font-mono text-content-primary" title="Elevated">E</div>
-                  <div className="w-8 h-8 rounded-lg bg-mrithula flex items-center justify-center text-[10px] font-mono text-white" title="Rose">R</div>
-                  <div className="w-8 h-8 rounded-lg bg-sreesh flex items-center justify-center text-[10px] font-mono text-white" title="Slate">S</div>
+                <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
+                  <span className="text-xs font-mono text-content-muted">500+ Design Tokens</span>
+                  <Link
+                    to={`/work/${atelier.slug}`}
+                    onClick={() => soundFx.playClick()}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-content-primary hover:text-mrithula-light transition-colors"
+                  >
+                    <span>Case Study</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
-                <p className="text-[11px] font-mono text-emerald-400">✓ 100% WCAG 2.1 AA Contrast Compliance</p>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
-              <span className="text-xs font-mono text-content-muted">500+ Design Tokens</span>
-              <Link
-                to={`/work/${atelier.slug}`}
-                onClick={() => soundFx.playClick()}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-content-primary hover:text-mrithula-light transition-colors"
-              >
-                <span>Case Study</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </article>
+              </article>
+            </PerspectiveCard>
+          </div>
 
           {/* COMPOSITION 3: AETHER BMW M4 3D (Sreesh) */}
-          <article className="lg:col-span-6 p-8 sm:p-10 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-burgundy-soft transition-all duration-300">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-burgundy-soft" />
-                  <span className="text-burgundy-soft font-bold">CASE STUDY 03</span>
-                </div>
-                <span className="text-content-muted">Three.js / WebGL Spatial</span>
-              </div>
+          <div className="lg:col-span-6">
+            <PerspectiveCard intensity={10} glareOpacity={0.2} className="h-full">
+              <article className="h-full p-8 sm:p-10 rounded-3xl border border-border-strong bg-surface-card space-y-8 flex flex-col justify-between group hover:border-burgundy-soft transition-all duration-300">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-burgundy-soft" />
+                      <span className="text-burgundy-soft font-bold">CASE STUDY 03</span>
+                    </div>
+                    <span className="text-content-muted">Three.js / WebGL Spatial</span>
+                  </div>
 
-              <div className="space-y-3">
-                <h3 className="text-2xl sm:text-4xl font-display font-extrabold text-content-primary group-hover:text-burgundy-soft transition-colors">
-                  {bmwm4.title}
-                </h3>
-                <p className="font-serif italic text-base text-content-secondary">
-                  "{bmwm4.tagline}"
-                </p>
-                <p className="text-xs text-content-secondary leading-relaxed">
-                  {bmwm4.description}
-                </p>
-              </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl sm:text-4xl font-display font-extrabold text-content-primary group-hover:text-burgundy-soft transition-colors">
+                      {bmwm4.title}
+                    </h3>
+                    <p className="font-serif italic text-base text-content-secondary">
+                      "{bmwm4.tagline}"
+                    </p>
+                    <p className="text-xs text-content-secondary leading-relaxed">
+                      {bmwm4.description}
+                    </p>
+                  </div>
 
-              {/* 3D WebGL Technical Callout */}
-              <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border-subtle space-y-2 font-mono text-xs">
-                <div className="flex items-center justify-between text-content-muted">
-                  <span>Render Loop:</span>
-                  <span className="text-emerald-400 font-bold">Sustained 60 FPS</span>
+                  {/* 3D WebGL Technical Callout */}
+                  <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border-subtle space-y-2 font-mono text-xs">
+                    <div className="flex items-center justify-between text-content-muted">
+                      <span>Render Loop:</span>
+                      <span className="text-emerald-400 font-bold">Sustained 60 FPS</span>
+                    </div>
+                    <div className="flex items-center justify-between text-content-muted">
+                      <span>Shader Pipeline:</span>
+                      <span className="text-content-primary">Custom Draco GLSL</span>
+                    </div>
+                    <div className="flex items-center justify-between text-content-muted">
+                      <span>Materials:</span>
+                      <span className="text-content-primary">4K HDR Cubemaps</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-content-muted">
-                  <span>Shader Pipeline:</span>
-                  <span className="text-content-primary">Custom Draco GLSL</span>
-                </div>
-                <div className="flex items-center justify-between text-content-muted">
-                  <span>Materials:</span>
-                  <span className="text-content-primary">4K HDR Cubemaps</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
-              <span className="text-xs font-mono text-content-muted">Draco Mesh Optimized</span>
-              <Link
-                to={`/work/${bmwm4.slug}`}
-                onClick={() => soundFx.playClick()}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-content-primary hover:text-burgundy-soft transition-colors"
-              >
-                <span>Case Study</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </article>
+                <div className="pt-6 border-t border-border-subtle flex items-center justify-between">
+                  <span className="text-xs font-mono text-content-muted">Draco Mesh Optimized</span>
+                  <Link
+                    to={`/work/${bmwm4.slug}`}
+                    onClick={() => soundFx.playClick()}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-content-primary hover:text-burgundy-soft transition-colors"
+                  >
+                    <span>Case Study</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </article>
+            </PerspectiveCard>
+          </div>
         </div>
       </section>
 

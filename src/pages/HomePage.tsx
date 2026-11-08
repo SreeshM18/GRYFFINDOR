@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Sparkles, Terminal, Palette, Cpu, ShieldCheck, Compass, GitMerge, Box, Activity } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Sparkles,
+  Terminal,
+  Palette,
+  Cpu,
+  ShieldCheck,
+  Compass,
+  GitMerge,
+  Box,
+  Activity,
+  Code2,
+  Laptop,
+  Radio,
+  Layers,
+  Flame,
+} from 'lucide-react';
 import { soundFx } from '../components/ui/AudioSynthesizer';
 import { PROFILES_DATA, INITIAL_PROJECTS } from '../data/initialData';
 import { PerspectiveCard } from '../components/ui/PerspectiveCard';
@@ -8,13 +25,41 @@ import { DimensionalHUD, DimensionMode } from '../components/ui/DimensionalHUD';
 import { KillerDimensionShowcase } from '../components/showcase/KillerDimensionShowcase';
 
 export const HomePage: React.FC = () => {
-  const [activeSplit, setActiveSplit] = useState<'sreesh' | 'mrithula' | null>(null);
+  const [activeSplit, setActiveSplit] = useState<'sreesh' | 'mrithula' | 'convergence' | null>(null);
   const [currentDimension, setCurrentDimension] = useState<DimensionMode>('spatial');
+  const [mouseOffset, setMouseOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const antigravity = INITIAL_PROJECTS.find((p) => p.id === 'antigravity-neural-os')!;
   const atelier = INITIAL_PROJECTS.find((p) => p.id === 'studio-design-system')!;
   const bmwm4 = INITIAL_PROJECTS.find((p) => p.id === 'aether-bmw-m4')!;
   const aethel = INITIAL_PROJECTS.find((p) => p.id === 'aethel-intelligence')!;
+
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMouseOffset({ x, y });
+  };
+
+  const handleHeroMouseLeave = () => {
+    setMouseOffset({ x: 0, y: 0 });
+    setActiveSplit(null);
+  };
+
+  // Kinetic cascading letter wave helper
+  const renderKineticLetters = (text: string, hoverColorClass: string) => (
+    <span className="inline-flex">
+      {text.split('').map((char, index) => (
+        <span
+          key={index}
+          className={`inline-block transition-transform duration-300 hover:-translate-y-3 hover:scale-105 select-none ${hoverColorClass}`}
+          style={{ transitionDelay: `${index * 25}ms` }}
+        >
+          {char}
+        </span>
+      ))}
+    </span>
+  );
 
   return (
     <div className="relative z-10 pb-36">
@@ -24,77 +69,159 @@ export const HomePage: React.FC = () => {
       {/* Main Flow Content Container */}
       <div className="space-y-28 sm:space-y-36">
         {/* =========================================================================
-            01. ASYMMETRIC OVERSIZED EDITORIAL HERO
+            01. ASYMMETRIC OVERSIZED EDITORIAL HERO (3D PERSPECTIVE & KINETIC HOVER)
         ========================================================================= */}
-        <section className="relative min-h-[90vh] flex flex-col justify-between px-4 sm:px-8 lg:px-12 pt-3 sm:pt-4 pb-12 overflow-hidden">
-        {/* Subtle Warm Atmospheric Glow */}
-        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-burgundy/10 rounded-full blur-[160px] pointer-events-none" />
+        <section
+          onMouseMove={handleHeroMouseMove}
+          onMouseLeave={handleHeroMouseLeave}
+          className="relative min-h-[90vh] flex flex-col justify-between px-4 sm:px-8 lg:px-12 pt-3 sm:pt-4 pb-12 overflow-hidden select-none"
+        >
+          {/* Dynamic Interactive Cursor-Tracking Spotlight Glow */}
+          <div
+            className="absolute w-[750px] h-[750px] rounded-full blur-[140px] pointer-events-none transition-all duration-300"
+            style={{
+              left: `${(mouseOffset.x + 0.5) * 100}%`,
+              top: `${(mouseOffset.y + 0.5) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              background:
+                activeSplit === 'sreesh'
+                  ? 'radial-gradient(circle, rgba(65, 90, 108, 0.3) 0%, transparent 70%)'
+                  : activeSplit === 'mrithula'
+                  ? 'radial-gradient(circle, rgba(138, 59, 78, 0.3) 0%, transparent 70%)'
+                  : activeSplit === 'convergence'
+                  ? 'radial-gradient(circle, rgba(211, 166, 37, 0.25) 0%, transparent 70%)'
+                  : 'radial-gradient(circle, rgba(92, 23, 38, 0.15) 0%, transparent 70%)',
+            }}
+          />
 
-        {/* Top Editorial Ticker & Coordinates */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-content-muted border-b border-border-subtle pb-4">
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-content-secondary">Bengaluru, India • GMT +05:30</span>
-            <span className="hidden md:inline text-border-strong">/</span>
-            <span className="hidden md:inline">Open for 2026 Fellowships & Select Collaborations</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="font-hand text-lg text-burgundy-soft -rotate-1">two minds, one creative space</span>
-            <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-widest text-content-muted">Folio 2026</span>
-          </div>
-        </div>
-
-        {/* Oversized Asymmetric Title Composition */}
-        <div className="my-auto py-16 sm:py-24 space-y-6">
-          <div className="relative">
-            {/* SREESH — Left Anchored */}
-            <div className="relative inline-block text-left group">
-              <Link
-                to="/sreesh"
-                onMouseEnter={() => {
-                  soundFx.playHover();
-                  setActiveSplit('sreesh');
-                }}
-                onMouseLeave={() => setActiveSplit(null)}
-                className="block text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] font-display font-extrabold tracking-tighter text-content-primary hover:text-sreesh-light transition-colors leading-[0.88] select-none"
-              >
-                SREESH
-              </Link>
-              <span className="absolute -top-4 -right-8 sm:-right-16 font-hand text-xl sm:text-2xl text-sreesh-light rotate-6 hidden sm:block pointer-events-none">
-                the systems architect ↗
-              </span>
+          {/* Top Editorial Ticker & Coordinates */}
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-content-muted border-b border-border-subtle pb-4">
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-content-secondary">Bengaluru, India • GMT +05:30</span>
+              <span className="hidden md:inline text-border-strong">/</span>
+              <span className="hidden md:inline">Open for 2026 Fellowships & Select Collaborations</span>
             </div>
-
-            {/* Italicized Serif Ampersand / Cross */}
-            <div className="my-2 sm:my-4 sm:ml-24 flex items-center gap-4">
-              <span className="font-serif italic text-4xl sm:text-6xl md:text-7xl text-burgundy-soft select-none font-light">
-                ×
-              </span>
-              <span className="h-px flex-1 max-w-xs bg-border-strong hidden md:block" />
-              <p className="font-mono text-xs text-content-muted uppercase tracking-widest hidden md:block">
-                Digital Engineering & Product Design Studio
-              </p>
-            </div>
-
-            {/* MRITHULA — Right Offset */}
-            <div className="relative text-left sm:text-right group">
-              <Link
-                to="/mrithula"
-                onMouseEnter={() => {
-                  soundFx.playHover();
-                  setActiveSplit('mrithula');
-                }}
-                onMouseLeave={() => setActiveSplit(null)}
-                className="block text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] font-display font-extrabold tracking-tighter text-content-primary hover:text-mrithula-light transition-colors leading-[0.88] select-none"
-              >
-                MRITHULA
-              </Link>
-              <span className="absolute -bottom-6 left-0 sm:left-auto sm:right-32 font-hand text-xl sm:text-2xl text-mrithula-light -rotate-3 hidden sm:block pointer-events-none">
-                ↖ the product & design lead
-              </span>
+            <div className="flex items-center gap-4">
+              <span className="font-hand text-lg text-burgundy-soft -rotate-1">two minds, one creative space</span>
+              <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-widest text-content-muted">Folio 2026</span>
             </div>
           </div>
-        </div>
+
+          {/* Oversized Asymmetric Title Composition with 3D Mouse Tilt */}
+          <div
+            className="my-auto py-12 sm:py-20 space-y-6 transition-transform duration-200 ease-out"
+            style={{
+              transform: `perspective(1200px) rotateX(${mouseOffset.y * -5}deg) rotateY(${mouseOffset.x * 5}deg)`,
+            }}
+          >
+            <div className="relative">
+              {/* SREESH — Left Anchored */}
+              <div className="relative inline-block text-left group">
+                <Link
+                  to="/sreesh"
+                  onMouseEnter={() => {
+                    soundFx.playHover();
+                    setActiveSplit('sreesh');
+                  }}
+                  className="block text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] font-display font-extrabold tracking-tighter text-content-primary leading-[0.88] select-none cursor-pointer"
+                >
+                  {renderKineticLetters('SREESH', 'hover:text-sreesh-light')}
+                </Link>
+                <span className="absolute -top-4 -right-8 sm:-right-16 font-hand text-xl sm:text-2xl text-sreesh-light rotate-6 hidden sm:block pointer-events-none animate-pulse">
+                  the systems architect ↗
+                </span>
+              </div>
+
+              {/* Italicized Serif Ampersand / Cross with Interactive Convergence */}
+              <div className="my-2 sm:my-4 sm:ml-24 flex items-center gap-4">
+                <button
+                  type="button"
+                  onMouseEnter={() => {
+                    soundFx.playChime();
+                    setActiveSplit('convergence');
+                  }}
+                  onClick={() => soundFx.playChime()}
+                  className="font-serif italic text-4xl sm:text-6xl md:text-7xl text-burgundy-soft hover:text-gold hover:scale-110 transition-all font-light select-none focus:outline-none"
+                  title="Click to harmonise both creative minds"
+                >
+                  ×
+                </button>
+                <span className="h-px flex-1 max-w-xs bg-border-strong hidden md:block" />
+                <p className="font-mono text-xs text-content-muted uppercase tracking-widest hidden md:block">
+                  Digital Engineering & Product Design Studio
+                </p>
+              </div>
+
+              {/* MRITHULA — Right Offset */}
+              <div className="relative text-left sm:text-right group">
+                <Link
+                  to="/mrithula"
+                  onMouseEnter={() => {
+                    soundFx.playHover();
+                    setActiveSplit('mrithula');
+                  }}
+                  className="block text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] font-display font-extrabold tracking-tighter text-content-primary leading-[0.88] select-none cursor-pointer"
+                >
+                  {renderKineticLetters('MRITHULA', 'hover:text-mrithula-light')}
+                </Link>
+                <span className="absolute -bottom-6 left-0 sm:left-auto sm:right-32 font-hand text-xl sm:text-2xl text-mrithula-light -rotate-3 hidden sm:block pointer-events-none animate-pulse">
+                  ↖ the product & design lead
+                </span>
+              </div>
+            </div>
+
+            {/* Dynamic Interactive Telemetry Reveal Card */}
+            <div className="min-h-[58px] pt-4 transition-all duration-300">
+              {activeSplit === 'sreesh' && (
+                <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-2xl bg-surface-card/90 border border-sreesh/40 shadow-xl backdrop-blur-md animate-fade-in text-xs font-mono">
+                  <span className="flex items-center gap-1.5 text-sreesh-light font-bold">
+                    <Cpu className="w-3.5 h-3.5" /> Sreesh M
+                  </span>
+                  <span className="text-content-muted">•</span>
+                  <span className="text-content-secondary">Autonomous Agents • Rust • Distributed Systems</span>
+                  <span className="text-content-muted">•</span>
+                  <Link to="/sreesh" className="text-gold hover:underline flex items-center gap-1">
+                    Enter Chamber ↗
+                  </Link>
+                </div>
+              )}
+
+              {activeSplit === 'mrithula' && (
+                <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-2xl bg-surface-card/90 border border-mrithula/40 shadow-xl backdrop-blur-md animate-fade-in text-xs font-mono sm:float-right">
+                  <span className="flex items-center gap-1.5 text-mrithula-light font-bold">
+                    <Sparkles className="w-3.5 h-3.5" /> Mrithula M
+                  </span>
+                  <span className="text-content-muted">•</span>
+                  <span className="text-content-secondary">Design Tokens • 60fps Physics • WCAG AA Craft</span>
+                  <span className="text-content-muted">•</span>
+                  <Link to="/mrithula" className="text-gold hover:underline flex items-center gap-1">
+                    Enter Atelier ↗
+                  </Link>
+                </div>
+              )}
+
+              {activeSplit === 'convergence' && (
+                <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-burgundy/30 via-surface-card to-burgundy/30 border border-gold/40 shadow-2xl backdrop-blur-md animate-fade-in text-xs font-mono mx-auto">
+                  <span className="flex items-center gap-1.5 text-gold font-bold">
+                    ✦ Convergence
+                  </span>
+                  <span className="text-content-muted">•</span>
+                  <span className="text-content-primary">14 Integrated Modules • 17 Dimensional Worlds • Dual Equal Control</span>
+                  <span className="text-content-muted">•</span>
+                  <Link to="/app/quests" className="text-gold hover:underline flex items-center gap-1">
+                    Open The Quest Board ↗
+                  </Link>
+                </div>
+              )}
+
+              {!activeSplit && (
+                <div className="text-[11px] font-mono text-content-muted italic opacity-75">
+                  Hover over either name or the center × to unveil live telemetry and dual-core synchronicity.
+                </div>
+              )}
+            </div>
+          </div>
 
         {/* Bottom Editorial Callout & Quick Entrance */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-border-subtle items-end">

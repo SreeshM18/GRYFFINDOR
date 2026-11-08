@@ -178,6 +178,14 @@ body {
   background: var(--text-muted);
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Print Stylesheet for ATS Resume */
 @media print {
   body {

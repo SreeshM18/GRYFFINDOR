@@ -1382,3 +1382,4 @@ const TaskEditorForm: React.FC<TaskEditorFormProps> = ({ initial, people, self, 
     </form>
   );
 };
+

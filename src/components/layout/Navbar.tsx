@@ -43,13 +43,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-canvas/80 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-canvas/85 backdrop-blur-md transition-colors">
+      <div className="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand Identity */}
         <Link
           to="/"
           onClick={() => soundFx.playClick()}
-          className="flex items-center gap-2 group"
+          className="flex items-center gap-2 group shrink-0"
           aria-label="Gryffindor — The Common Room"
         >
           <div className="flex flex-col">
@@ -62,17 +62,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-surface-card/60 border border-border-subtle">
+        {/* Desktop Navigation Links (Pill Bar) */}
+        <nav className="hidden lg:flex items-center gap-0.5 p-1 rounded-full bg-surface-card/60 border border-border-subtle overflow-x-auto no-scrollbar">
           {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
               onClick={() => soundFx.playClick()}
               onMouseEnter={() => soundFx.playHover()}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-all ${
                 isActive(link.path)
-                  ? 'bg-surface-elevated text-content-primary shadow-sm'
+                  ? 'bg-surface-elevated text-content-primary shadow-sm font-semibold'
                   : 'text-content-secondary hover:text-content-primary hover:bg-surface-elevated/50'
               }`}
             >
@@ -82,18 +82,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
-          {/* Quick Command Launcher (Ctrl+K) */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Quick Command Launcher (Ctrl+K / ⌘K) */}
           <button
             onClick={() => {
               soundFx.playClick();
               onOpenCommandPalette();
             }}
-            className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-card hover:bg-surface-elevated text-content-muted hover:text-content-primary text-xs transition-colors"
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border-subtle bg-surface-card hover:bg-surface-elevated text-content-muted hover:text-content-primary text-xs transition-colors shrink-0"
             title="Open Command Launcher (Ctrl+K)"
           >
             <Command className="w-3.5 h-3.5" />
-            <kbd className="text-[10px] font-mono opacity-80">⌘K</kbd>
+            <kbd className="text-[10px] font-mono opacity-80">K</kbd>
           </button>
 
           {/* Audio Synthesizer Toggle */}

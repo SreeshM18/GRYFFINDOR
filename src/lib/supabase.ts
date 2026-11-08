@@ -23,3 +23,4 @@ export const supabase = configured
       },
     })
   : null;
+

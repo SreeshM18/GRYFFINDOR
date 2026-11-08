@@ -110,3 +110,4 @@ export const DESIGN_PRESETS: DesignPresetMeta[] = [
     fontBadge: 'Mobitec Mono / Neo-Grotesk',
   },
 ];
+

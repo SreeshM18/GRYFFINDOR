@@ -32,6 +32,7 @@ import { DashboardOverview } from './pages/dashboard/DashboardOverview';
 import { AttendancePage } from './pages/dashboard/AttendancePage';
 import { LiveStatusPage } from './pages/dashboard/LiveStatusPage';
 import { DashboardTasks } from './pages/dashboard/DashboardTasks';
+import { GryffindorQuestBoardPage } from './pages/dashboard/GryffindorQuestBoardPage';
 import { DashboardProjects } from './pages/dashboard/DashboardProjects';
 import { InternshipsPage } from './pages/dashboard/InternshipsPage';
 import { AcademicsPage } from './pages/dashboard/AcademicsPage';
@@ -144,7 +145,10 @@ export const AppContent: React.FC = () => {
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="timesheets" element={<AttendancePage />} />
             <Route path="status" element={<LiveStatusPage />} />
-            <Route path="tasks" element={<DashboardTasks />} />
+            <Route path="quests" element={<GryffindorQuestBoardPage />} />
+            <Route path="quest-board" element={<GryffindorQuestBoardPage />} />
+            <Route path="tasks" element={<GryffindorQuestBoardPage />} />
+            <Route path="kanban" element={<DashboardTasks />} />
             <Route path="projects" element={<DashboardProjects />} />
             <Route path="internships" element={<InternshipsPage />} />
             <Route path="academics" element={<AcademicsPage />} />

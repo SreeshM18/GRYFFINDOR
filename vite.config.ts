@@ -14,7 +14,7 @@ export default defineConfig({
     port: 5173,
     host: true,
     watch: {
-      ignored: ['**/Use this now/**', '**/.git/**', '**/dist/**'],
+      ignored: ['**/Use this now/**', '**/.git/**', '**/dist/**', '**/supabase/**'],
     },
   },
 });

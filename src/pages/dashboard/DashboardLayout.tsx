@@ -30,6 +30,7 @@ import {
   Laptop,
   Smartphone,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { workOs } from '../../services/workOsStorage';
@@ -73,8 +74,9 @@ export const DashboardLayout: React.FC = () => {
     {
       group: 'THE GREAT HALL (COLLABORATION)',
       items: [
+        { path: '/app/quests', label: 'The Quest Board (Assignments)', icon: Sparkles },
         { path: '/app/tasks', label: 'My Quests (Tasks)', icon: CheckSquare },
-        { path: '/app/projects', label: 'The Quest Board (Projects)', icon: FolderGit2 },
+        { path: '/app/projects', label: 'Projects & Repos', icon: FolderGit2 },
         { path: '/app/calendar', label: 'The Timekeeper (Calendar)', icon: Calendar },
         { path: '/app/notes', label: 'The Library (Knowledge)', icon: BookOpen },
         { path: '/app/messages', label: 'Owl Post (Direct Channel)', icon: MessageSquare },

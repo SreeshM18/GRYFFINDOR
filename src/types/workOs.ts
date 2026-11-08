@@ -215,4 +215,56 @@ export interface FinanceItem {
   url?: string;
 }
 
+export interface JournalEntry {
+  id: string;
+  userId: UserId;
+  date: string;
+  title: string;
+  content: string;
+  mood: 'focused' | 'inspired' | 'neutral' | 'exhausted' | 'victorious';
+  energyLevel: number; // 1-5
+  tags: string[];
+  isPrivate: true;
+  createdAt: string;
+}
+
+export interface JobApplication {
+  id: string;
+  userId: UserId;
+  companyName: string;
+  roleTitle: string;
+  location: string;
+  workType: 'Remote' | 'Hybrid' | 'On-Site';
+  salaryRange?: string;
+  stage: 'wishlist' | 'applied' | 'oa' | 'technical' | 'hr' | 'offer' | 'rejected';
+  appliedDate: string;
+  interviewDate?: string;
+  jobUrl?: string;
+  recruiterContact?: string;
+  notes?: string;
+  rounds: {
+    roundName: string;
+    date: string;
+    status: 'passed' | 'failed' | 'scheduled';
+    questionsAsked?: string;
+  }[];
+}
+
+export interface ClientProject {
+  id: string;
+  clientName: string;
+  projectTitle: string;
+  status: 'lead' | 'proposal' | 'in_progress' | 'review' | 'completed';
+  budgetAmount: number;
+  currency: 'INR' | 'USD';
+  deliverables: string[];
+  timeline: string;
+  paidAmount: number;
+  leadContact: string;
+  proposalUrl?: string;
+  assignedTo: UserId | 'both';
+  createdAt: string;
+}
+
+
 

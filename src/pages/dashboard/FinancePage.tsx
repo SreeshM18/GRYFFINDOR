@@ -352,3 +352,4 @@ export const FinancePage: React.FC = () => {
     </div>
   );
 };
+

@@ -24,6 +24,9 @@ import {
   Lightbulb,
   CreditCard,
   MessageSquare,
+  Lock,
+  Globe,
+  Compass,
 } from 'lucide-react';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { workOs } from '../../services/workOsStorage';
@@ -55,44 +58,42 @@ export const DashboardLayout: React.FC = () => {
 
   const navSections = [
     {
-      group: 'OPERATIONS & TIME',
+      group: '1. MY SPACE (PRIVATE)',
       items: [
-        { path: '/app/dashboard', label: 'Command Center', icon: LayoutDashboard },
-        { path: '/app/attendance', label: 'Attendance & Clock-In', icon: Clock },
-        { path: '/app/status', label: 'Live Work Status', icon: Activity },
+        { path: '/app/my-space', label: 'My Space & Journal', icon: Lock },
         { path: '/app/focus', label: 'Focus & Deep Work', icon: Timer },
       ],
     },
     {
-      group: 'PRODUCTIVITY & DISCIPLINE',
+      group: '2. OUR WORKSPACE (SHARED)',
       items: [
+        { path: '/app/dashboard', label: 'Command Center', icon: LayoutDashboard },
         { path: '/app/tasks', label: 'Kanban Tasks', icon: CheckSquare },
-        { path: '/app/habits', label: 'Habits & Discipline', icon: Flame },
         { path: '/app/projects', label: 'Projects & Repos', icon: FolderGit2 },
+        { path: '/app/habits', label: 'Habits & Discipline', icon: Flame },
         { path: '/app/calendar', label: 'Calendar & Deadlines', icon: Calendar },
         { path: '/app/notes', label: 'Markdown Knowledge', icon: BookOpen },
-      ],
-    },
-    {
-      group: 'STUDIO & STRATEGY',
-      items: [
         { path: '/app/messages', label: 'Co-Founder Channel', icon: MessageSquare },
         { path: '/app/ideas', label: 'Ideas & ADR Decisions', icon: Lightbulb },
-        { path: '/app/finance', label: 'Studio Finance & Subs', icon: CreditCard },
       ],
     },
     {
-      group: 'CAREER & ACADEMICS',
+      group: '3. CAREER & CLIENTS',
       items: [
+        { path: '/app/career', label: 'Career & Placements', icon: Briefcase },
         { path: '/app/internships', label: 'Internships & Logs', icon: Briefcase },
         { path: '/app/academics', label: 'College Academics', icon: GraduationCap },
+        { path: '/app/studio', label: 'Client & Freelance Hub', icon: Compass },
         { path: '/app/documents', label: 'Documents & Resumes', icon: FileText },
         { path: '/app/leave', label: 'Leave & Time-Off', icon: Sun },
       ],
     },
     {
-      group: 'REPORTS & CMS',
+      group: '4. MANAGEMENT & OPS',
       items: [
+        { path: '/app/attendance', label: 'Attendance & Clock-In', icon: Clock },
+        { path: '/app/status', label: 'Live Work Status', icon: Activity },
+        { path: '/app/finance', label: 'Studio Finance & Subs', icon: CreditCard },
         { path: '/app/reports', label: 'Reports & Timesheets', icon: BarChart3 },
         { path: '/app/content', label: 'Live Portfolio CMS', icon: FileEdit },
         { path: '/app/settings', label: 'Settings & Privacy', icon: Settings },
@@ -136,6 +137,46 @@ export const DashboardLayout: React.FC = () => {
             <p className="text-[10px] font-mono uppercase tracking-widest text-burgundy-soft">
               Personal Work OS
             </p>
+          </div>
+
+          {/* 4 Environment Quick Switcher */}
+          <div className="p-1 rounded-xl bg-surface-elevated/70 border border-border-subtle grid grid-cols-2 gap-1 text-[10px] font-mono">
+            <Link
+              to="/app/my-space"
+              onClick={() => soundFx.playClick()}
+              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${
+                location.pathname === '/app/my-space' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
+              }`}
+            >
+              <Lock className="w-2.5 h-2.5" />
+              <span>My Space</span>
+            </Link>
+            <Link
+              to="/app/dashboard"
+              onClick={() => soundFx.playClick()}
+              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${
+                location.pathname === '/app/dashboard' || location.pathname === '/app/tasks' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
+              }`}
+            >
+              <span>Workspace</span>
+            </Link>
+            <Link
+              to="/app/attendance"
+              onClick={() => soundFx.playClick()}
+              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${
+                location.pathname === '/app/attendance' || location.pathname === '/app/reports' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
+              }`}
+            >
+              <span>Operations</span>
+            </Link>
+            <Link
+              to="/"
+              onClick={() => soundFx.playClick()}
+              className="p-1.5 rounded-lg text-center transition-colors text-content-secondary hover:text-content-primary flex items-center justify-center gap-1"
+            >
+              <Globe className="w-2.5 h-2.5" />
+              <span>Portfolio</span>
+            </Link>
           </div>
 
           {/* Nav Sections */}

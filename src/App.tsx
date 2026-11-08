@@ -41,6 +41,9 @@ import { HabitsPage } from './pages/dashboard/HabitsPage';
 import { IdeasAndAdrsPage } from './pages/dashboard/IdeasAndAdrsPage';
 import { FinancePage } from './pages/dashboard/FinancePage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
+import { MySpacePage } from './pages/dashboard/MySpacePage';
+import { CareerTrackerPage } from './pages/dashboard/CareerTrackerPage';
+import { ClientFreelancePage } from './pages/dashboard/ClientFreelancePage';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -114,6 +117,11 @@ export const AppContent: React.FC = () => {
           {/* Private Work OS System */}
           <Route path="/app" element={<DashboardLayout />}>
             <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="my-space" element={<MySpacePage />} />
+            <Route path="workspace" element={<DashboardOverview />} />
+            <Route path="career" element={<CareerTrackerPage />} />
+            <Route path="studio" element={<ClientFreelancePage />} />
+            <Route path="operations" element={<AttendancePage />} />
             <Route path="dashboard" element={<DashboardOverview />} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="timesheets" element={<AttendancePage />} />

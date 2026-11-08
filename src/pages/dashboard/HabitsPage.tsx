@@ -345,3 +345,4 @@ export const HabitsPage: React.FC = () => {
     </div>
   );
 };
+

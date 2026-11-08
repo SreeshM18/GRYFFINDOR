@@ -14,6 +14,9 @@ import {
   IdeaItem,
   ADRRecord,
   FinanceItem,
+  JournalEntry,
+  JobApplication,
+  ClientProject,
 } from '../types/workOs';
 
 class WorkOsStorage {
@@ -862,6 +865,205 @@ class WorkOsStorage {
     list.push(newMsg);
     localStorage.setItem(`${this.STORAGE_KEY_PREFIX}messages`, JSON.stringify(list));
     return newMsg;
+  }
+
+  // --- PRIVATE DAILY JOURNAL & REFLECTIONS ---
+  public getJournalEntries(userId: UserId): JournalEntry[] {
+    const key = `${this.STORAGE_KEY_PREFIX}journal_${userId}`;
+    const raw = localStorage.getItem(key);
+    let list: JournalEntry[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      list = [
+        {
+          id: `jr-${userId}-1`,
+          userId,
+          date: today,
+          title: 'Architecting the Sovereign Personal Work OS',
+          content: 'Reflecting on the architecture: separating our personal academic life from professional studio work creates immense clarity. Built the Web Audio procedural sound generator today for deep focus sprints.',
+          mood: 'focused',
+          energyLevel: 5,
+          tags: ['architecture', 'flow-state', 'systems'],
+          isPrivate: true,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+    return list;
+  }
+
+  public createJournalEntry(entry: Omit<JournalEntry, 'id' | 'createdAt' | 'isPrivate'>): JournalEntry {
+    const list = this.getJournalEntries(entry.userId);
+    const newEntry: JournalEntry = {
+      ...entry,
+      id: `jr-${Date.now()}`,
+      isPrivate: true,
+      createdAt: new Date().toISOString(),
+    };
+    list.unshift(newEntry);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}journal_${entry.userId}`, JSON.stringify(list));
+    return newEntry;
+  }
+
+  // --- CAREER & PLACEMENT TRACKER ---
+  public getJobApplications(userId?: UserId): JobApplication[] {
+    const key = `${this.STORAGE_KEY_PREFIX}job_applications`;
+    const raw = localStorage.getItem(key);
+    let list: JobApplication[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'job-1',
+          userId: 'sreesh',
+          companyName: 'Google',
+          roleTitle: 'Software Engineer - Systems & Cloud Infrastructure',
+          location: 'Bengaluru / Hyderabad',
+          workType: 'Hybrid',
+          salaryRange: '₹32 - 45 LPA',
+          stage: 'technical',
+          appliedDate: '2026-10-15',
+          interviewDate: '2026-11-14',
+          jobUrl: 'https://careers.google.com',
+          recruiterContact: 'talent-in@google.com',
+          notes: 'Focus on distributed graph traversal, concurrency models, and low-latency API design.',
+          rounds: [
+            { roundName: 'Online Assessment (DSA)', date: '2026-10-22', status: 'passed', questionsAsked: 'Graph shortest path with state transitions; Sliding window segment tree.' },
+            { roundName: 'Technical Round 1 (Data Structures)', date: '2026-11-04', status: 'passed', questionsAsked: 'Trie with frequency decay; In-memory LRU cache with concurrency locks.' },
+            { roundName: 'Technical Round 2 (System Design)', date: '2026-11-14', status: 'scheduled' },
+          ],
+        },
+        {
+          id: 'job-2',
+          userId: 'sreesh',
+          companyName: 'Atlassian',
+          roleTitle: 'Software Engineer - Core Platform',
+          location: 'Bengaluru',
+          workType: 'Remote',
+          salaryRange: '₹28 - 36 LPA',
+          stage: 'oa',
+          appliedDate: '2026-10-28',
+          jobUrl: 'https://atlassian.com/careers',
+          rounds: [
+            { roundName: 'Online Assessment', date: '2026-11-09', status: 'scheduled' },
+          ],
+        },
+        {
+          id: 'job-3',
+          userId: 'mrithula',
+          companyName: 'Linear / Remote Studio',
+          roleTitle: 'Principal Product Designer & Frontend Engineer',
+          location: 'San Francisco (Remote)',
+          workType: 'Remote',
+          salaryRange: '$90,000 - $120,000 USD',
+          stage: 'technical',
+          appliedDate: '2026-10-18',
+          interviewDate: '2026-11-12',
+          notes: 'Presenting the SREESH × MRITHULA editorial design token architecture and 60fps micro-interaction library.',
+          rounds: [
+            { roundName: 'Portfolio Review & Creative Direction', date: '2026-10-25', status: 'passed' },
+            { roundName: 'Live Design Systems Pairing', date: '2026-11-12', status: 'scheduled' },
+          ],
+        },
+        {
+          id: 'job-4',
+          userId: 'mrithula',
+          companyName: 'CRED',
+          roleTitle: 'Product Designer - High Craft Web & Mobile',
+          location: 'Bengaluru',
+          workType: 'On-Site',
+          salaryRange: '₹26 - 34 LPA',
+          stage: 'hr',
+          appliedDate: '2026-10-10',
+          interviewDate: '2026-11-10',
+          rounds: [
+            { roundName: 'Design Critique & Take-home', date: '2026-10-20', status: 'passed' },
+            { roundName: 'Leadership & Craft Debrief', date: '2026-11-02', status: 'passed' },
+            { roundName: 'Executive HR Round', date: '2026-11-10', status: 'scheduled' },
+          ],
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    if (userId) return list.filter((j) => j.userId === userId);
+    return list;
+  }
+
+  public createJobApplication(app: Omit<JobApplication, 'id'>): JobApplication {
+    const list = this.getJobApplications();
+    const newApp: JobApplication = {
+      ...app,
+      id: `job-${Date.now()}`,
+    };
+    list.unshift(newApp);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}job_applications`, JSON.stringify(list));
+    return newApp;
+  }
+
+  public updateJobApplicationStage(id: string, stage: JobApplication['stage']): void {
+    const list = this.getJobApplications();
+    const item = list.find((j) => j.id === id);
+    if (item) {
+      item.stage = stage;
+      localStorage.setItem(`${this.STORAGE_KEY_PREFIX}job_applications`, JSON.stringify(list));
+    }
+  }
+
+  // --- CLIENT & FREELANCE STUDIO HUB ---
+  public getClientProjects(): ClientProject[] {
+    const key = `${this.STORAGE_KEY_PREFIX}client_projects`;
+    const raw = localStorage.getItem(key);
+    let list: ClientProject[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'client-1',
+          clientName: 'Aurelia Luxury Travel',
+          projectTitle: 'Bespoke Travel Booking Portal & Editorial Brand',
+          status: 'in_progress',
+          budgetAmount: 185000,
+          currency: 'INR',
+          paidAmount: 92500,
+          deliverables: ['Custom design token system', 'Next.js 14 booking engine', 'Sanity CMS integration'],
+          timeline: 'Oct 2026 - Dec 2026',
+          leadContact: 'concierge@aureliaholidays.com',
+          assignedTo: 'both',
+          createdAt: '2026-10-01',
+        },
+        {
+          id: 'client-2',
+          clientName: 'NeuraHealth Informatics',
+          projectTitle: 'HIPAA-Ready Patient Health Metric Dashboard',
+          status: 'proposal',
+          budgetAmount: 240000,
+          currency: 'INR',
+          paidAmount: 0,
+          deliverables: ['Secure FHIR API pipeline', 'Accessibility WCAG 2.2 AA audit', 'Interactive WebGL vitals viewer'],
+          timeline: 'Dec 2026 - Feb 2027',
+          leadContact: 'partnerships@neurahealth.io',
+          assignedTo: 'sreesh',
+          createdAt: '2026-11-02',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+    return list;
+  }
+
+  public createClientProject(proj: Omit<ClientProject, 'id' | 'createdAt'>): ClientProject {
+    const list = this.getClientProjects();
+    const newProj: ClientProject = {
+      ...proj,
+      id: `client-${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    list.unshift(newProj);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}client_projects`, JSON.stringify(list));
+    return newProj;
   }
 }
 

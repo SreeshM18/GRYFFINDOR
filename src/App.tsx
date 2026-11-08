@@ -18,6 +18,10 @@ import { JourneyPage } from './pages/JourneyPage';
 import { AchievementsPage } from './pages/AchievementsPage';
 import { ResumesPage } from './pages/ResumesPage';
 import { ContactPage } from './pages/ContactPage';
+import { DimensionAtlasPage } from './pages/worlds/DimensionAtlasPage';
+import { WorldDimensionDetailPage } from './pages/worlds/WorldDimensionDetailPage';
+import { SourcesDirectoryPage } from './pages/worlds/SourcesDirectoryPage';
+import { AtriumPage } from './pages/AtriumPage';
 
 // Private Work OS Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -108,6 +112,12 @@ export const AppContent: React.FC = () => {
           <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/resumes" element={<ResumesPage />} />
           <Route path="/contact" element={<ContactPage />} />
+
+          {/* 17-Dimension Atlas & Sources Library */}
+          <Route path="/atrium" element={<AtriumPage />} />
+          <Route path="/worlds" element={<DimensionAtlasPage />} />
+          <Route path="/worlds/:id" element={<WorldDimensionDetailPage />} />
+          <Route path="/sources" element={<SourcesDirectoryPage />} />
 
           {/* Authentication */}
           <Route path="/login" element={<LoginPage />} />

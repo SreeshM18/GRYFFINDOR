@@ -30,8 +30,38 @@ export const Footer: React.FC = () => {
 
           {/* Independent Profiles */}
           <div className="space-y-3">
-            <h4 className="text-xs font-mono uppercase tracking-widest text-content-muted">Independent Portfolios</h4>
+            <h4 className="text-xs font-mono uppercase tracking-widest text-content-muted">Portfolios & Dimensions</h4>
             <ul className="space-y-2 text-xs">
+              <li>
+                <Link
+                  to="/atrium"
+                  onClick={() => soundFx.playClick()}
+                  className="text-gold hover:text-gold-light flex items-center justify-between group font-semibold"
+                >
+                  <span>The Archive Atrium</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/worlds"
+                  onClick={() => soundFx.playClick()}
+                  className="text-gold hover:text-gold-light flex items-center justify-between group font-semibold"
+                >
+                  <span>Dimension Atlas (17 Worlds)</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/sources"
+                  onClick={() => soundFx.playClick()}
+                  className="text-content-secondary hover:text-content-primary flex items-center justify-between group"
+                >
+                  <span>17 Sources Reference Audit</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/sreesh"
@@ -49,16 +79,6 @@ export const Footer: React.FC = () => {
                   className="text-content-secondary hover:text-content-primary flex items-center justify-between group"
                 >
                   <span>Mrithula (Product & UI/UX)</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/collaborations"
-                  onClick={() => soundFx.playClick()}
-                  className="text-content-secondary hover:text-content-primary flex items-center justify-between group"
-                >
-                  <span>Shared Studio Works</span>
                   <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>

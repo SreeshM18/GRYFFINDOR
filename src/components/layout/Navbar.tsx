@@ -23,13 +23,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { path: '/', label: 'Overview' },
+    { path: '/atrium', label: 'Atrium' },
+    { path: '/worlds', label: '17 Worlds' },
     { path: '/sreesh', label: 'Sreesh' },
     { path: '/mrithula', label: 'Mrithula' },
     { path: '/projects', label: 'Projects' },
     { path: '/collaborations', label: 'Collabs' },
     { path: '/skills', label: 'Skills' },
     { path: '/experience', label: 'Experience' },
-    { path: '/achievements', label: 'Honors' },
     { path: '/resumes', label: 'Resumes' },
     { path: '/contact', label: 'Contact' },
   ];

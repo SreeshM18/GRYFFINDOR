@@ -27,6 +27,9 @@ import {
   Lock,
   Globe,
   Compass,
+  Laptop,
+  Smartphone,
+  TrendingUp,
 } from 'lucide-react';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { workOs } from '../../services/workOsStorage';
@@ -62,6 +65,8 @@ export const DashboardLayout: React.FC = () => {
       items: [
         { path: '/app/my-space', label: 'My Space & Journal', icon: Lock },
         { path: '/app/focus', label: 'Focus & Deep Work', icon: Timer },
+        { path: '/app/analytics', label: 'My Analytics & Review', icon: TrendingUp },
+        { path: '/app/devices', label: 'My Devices (Mac, iOS, Win)', icon: Laptop },
       ],
     },
     {

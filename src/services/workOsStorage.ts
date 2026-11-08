@@ -17,6 +17,8 @@ import {
   JournalEntry,
   JobApplication,
   ClientProject,
+  DeviceSession,
+  FiveStatusModel,
 } from '../types/workOs';
 
 class WorkOsStorage {
@@ -1064,6 +1066,141 @@ class WorkOsStorage {
     list.unshift(newProj);
     localStorage.setItem(`${this.STORAGE_KEY_PREFIX}client_projects`, JSON.stringify(list));
     return newProj;
+  }
+
+  // --- MULTI-DEVICE SESSION MANAGEMENT (MAC, IPHONE, WINDOWS) ---
+  public detectCurrentDevice(): { name: string; type: DeviceSession['deviceType']; os: string; browser: string } {
+    if (typeof window === 'undefined') {
+      return { name: 'Windows Workstation', type: 'windows', os: 'Windows 11', browser: 'Chrome' };
+    }
+    const ua = navigator.userAgent;
+    let type: DeviceSession['deviceType'] = 'windows';
+    let name = 'Windows Laptop';
+    let os = 'Windows 11';
+    let browser = 'Chrome';
+
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      type = 'iphone';
+      name = 'iPhone 16 Pro';
+      os = 'iOS 18.1';
+      browser = 'Mobile Safari';
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      type = 'mac';
+      name = 'MacBook Pro 16"';
+      os = 'macOS Sequoia';
+      browser = 'Safari / Chrome';
+    } else if (/Windows/i.test(ua)) {
+      type = 'windows';
+      name = 'Windows Workstation';
+      os = 'Windows 11 Enterprise';
+      browser = 'Chrome 130';
+    }
+
+    return { name, type, os, browser };
+  }
+
+  public getDeviceSessions(userId: UserId): DeviceSession[] {
+    const key = `${this.STORAGE_KEY_PREFIX}devices_${userId}`;
+    const raw = localStorage.getItem(key);
+    let list: DeviceSession[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      const current = this.detectCurrentDevice();
+      const now = new Date();
+
+      list = [
+        {
+          id: `dev-${userId}-current`,
+          userId,
+          deviceName: current.name,
+          deviceType: current.type,
+          browser: current.browser,
+          os: current.os,
+          location: 'Bengaluru, India',
+          isCurrentDevice: true,
+          sessionStatus: 'active',
+          lastActive: 'Just now',
+          loginTime: new Date(now.getTime() - 3600000 * 2).toISOString(),
+          isTrusted: true,
+          appVersion: 'v2.4.0 (PWA/Web)',
+        },
+        {
+          id: `dev-${userId}-mac`,
+          userId,
+          deviceName: 'MacBook Pro 16" (Studio)',
+          deviceType: 'mac',
+          browser: 'Safari 18.0',
+          os: 'macOS Sequoia 15.1',
+          location: 'Bengaluru, India',
+          isCurrentDevice: current.type === 'mac',
+          sessionStatus: 'active',
+          lastActive: '18 minutes ago',
+          loginTime: new Date(now.getTime() - 3600000 * 24).toISOString(),
+          isTrusted: true,
+          appVersion: 'v2.4.0 (Desktop Native)',
+        },
+        {
+          id: `dev-${userId}-iphone`,
+          userId,
+          deviceName: 'iPhone 16 Pro Max',
+          deviceType: 'iphone',
+          browser: 'Safari PWA',
+          os: 'iOS 18.1',
+          location: 'Bengaluru, India',
+          isCurrentDevice: current.type === 'iphone',
+          sessionStatus: 'active',
+          lastActive: '45 minutes ago',
+          loginTime: new Date(now.getTime() - 3600000 * 48).toISOString(),
+          isTrusted: true,
+          appVersion: 'v2.4.0 (PWA Client)',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    return list;
+  }
+
+  public revokeDeviceSession(userId: UserId, sessionId: string): void {
+    const list = this.getDeviceSessions(userId);
+    const updated = list.map((s) => (s.id === sessionId ? { ...s, sessionStatus: 'revoked' as const } : s));
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}devices_${userId}`, JSON.stringify(updated));
+  }
+
+  public revokeOtherDeviceSessions(userId: UserId): void {
+    const list = this.getDeviceSessions(userId);
+    const updated = list.map((s) => (s.isCurrentDevice ? s : { ...s, sessionStatus: 'revoked' as const }));
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}devices_${userId}`, JSON.stringify(updated));
+  }
+
+  // --- 5-STATUS MULTI-DIMENSION RECONCILIATION ENGINE ---
+  public getFiveStatusSnapshot(userId: UserId): FiveStatusModel {
+    const presence = this.getUserPresence(userId);
+    const clockIn = this.getActiveClockIn(userId);
+    const currentDevice = this.detectCurrentDevice();
+
+    let attendanceStatus: FiveStatusModel['attendanceStatus'] = 'checked_out';
+    if (clockIn) {
+      const activeBreak = clockIn.breaks.find((b) => !b.end);
+      attendanceStatus = activeBreak ? 'on_break' : 'checked_in';
+    }
+
+    let appStatus: FiveStatusModel['appStatus'] = 'active';
+    if (typeof document !== 'undefined' && document.hidden) {
+      appStatus = 'background';
+    }
+
+    return {
+      loginStatus: 'signed_in',
+      appStatus,
+      workStatus: presence.status,
+      attendanceStatus,
+      deviceStatus: {
+        deviceName: currentDevice.name,
+        deviceType: currentDevice.type,
+        lastSyncTime: 'Just now',
+      },
+    };
   }
 }
 

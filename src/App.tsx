@@ -44,6 +44,8 @@ import { MessagesPage } from './pages/dashboard/MessagesPage';
 import { MySpacePage } from './pages/dashboard/MySpacePage';
 import { CareerTrackerPage } from './pages/dashboard/CareerTrackerPage';
 import { ClientFreelancePage } from './pages/dashboard/ClientFreelancePage';
+import { DeviceManagerPage } from './pages/dashboard/DeviceManagerPage';
+import { MyAnalyticsPage } from './pages/dashboard/MyAnalyticsPage';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -135,7 +137,8 @@ export const AppContent: React.FC = () => {
             <Route path="notes" element={<DashboardNotes />} />
             <Route path="calendar" element={<DashboardCalendar />} />
             <Route path="reports" element={<ReportsPage />} />
-            <Route path="analytics" element={<ReportsPage />} />
+            <Route path="analytics" element={<MyAnalyticsPage />} />
+            <Route path="devices" element={<DeviceManagerPage />} />
             <Route path="content" element={<DashboardContent />} />
             <Route path="focus" element={<FocusModePage />} />
             <Route path="habits" element={<HabitsPage />} />

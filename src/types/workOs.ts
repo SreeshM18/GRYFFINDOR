@@ -266,5 +266,34 @@ export interface ClientProject {
   createdAt: string;
 }
 
+export interface DeviceSession {
+  id: string;
+  userId: UserId;
+  deviceName: string;
+  deviceType: 'mac' | 'iphone' | 'windows' | 'tablet';
+  browser: string;
+  os: string;
+  location: string;
+  isCurrentDevice: boolean;
+  sessionStatus: 'active' | 'idle' | 'revoked';
+  lastActive: string;
+  loginTime: string;
+  isTrusted: boolean;
+  appVersion: string;
+}
+
+export interface FiveStatusModel {
+  loginStatus: 'signed_in' | 'signed_out';
+  appStatus: 'active' | 'idle' | 'background';
+  workStatus: UserStatusType;
+  attendanceStatus: 'checked_in' | 'on_break' | 'checked_out' | 'not_scheduled';
+  deviceStatus: {
+    deviceName: string;
+    deviceType: 'mac' | 'iphone' | 'windows' | 'tablet';
+    lastSyncTime: string;
+  };
+}
+
+
 
 

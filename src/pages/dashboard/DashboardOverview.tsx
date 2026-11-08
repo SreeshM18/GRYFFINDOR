@@ -15,11 +15,16 @@ import {
   ShieldCheck,
   Activity,
   FileText,
+  Monitor,
+  Laptop,
+  Smartphone,
+  Wifi,
+  Lock,
 } from 'lucide-react';
 import { workOs } from '../../services/workOsStorage';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { INITIAL_PROJECTS, INITIAL_TASKS, INITIAL_NOTES } from '../../data/initialData';
-import { AttendanceRecord } from '../../types/workOs';
+import { AttendanceRecord, FiveStatusModel } from '../../types/workOs';
 
 export const DashboardOverview: React.FC = () => {
   const currentUser = workOs.getCurrentUser();
@@ -27,6 +32,7 @@ export const DashboardOverview: React.FC = () => {
   const [sreeshPresence, setSreeshPresence] = useState(workOs.getUserPresence('sreesh'));
   const [mrithulaPresence, setMrithulaPresence] = useState(workOs.getUserPresence('mrithula'));
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [statusSnapshot, setStatusSnapshot] = useState<FiveStatusModel | null>(null);
 
   const activeTasks = INITIAL_TASKS.filter((t) => t.status !== 'done');
   const userTasks = activeTasks.filter((t) => t.assignedTo === currentUser.id);
@@ -36,10 +42,13 @@ export const DashboardOverview: React.FC = () => {
     setSreeshPresence(workOs.getUserPresence('sreesh'));
     setMrithulaPresence(workOs.getUserPresence('mrithula'));
     setAttendanceRecords(workOs.getAttendanceRecords(currentUser.id));
+    setStatusSnapshot(workOs.getFiveStatusSnapshot(currentUser.id));
   };
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 6000);
+    return () => clearInterval(interval);
   }, [currentUser.id]);
 
   const handleQuickClockIn = () => {
@@ -114,6 +123,91 @@ export const DashboardOverview: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 01.5 PERSONAL ACCOUNT STATUS COCKPIT (Mac, iPhone, Windows Device & 5-Status Engine) */}
+      {statusSnapshot && (
+        <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 space-y-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-3">
+            <div className="flex items-center gap-2">
+              <span className="font-display font-bold text-sm text-content-primary">
+                {currentUser.name} — Personal Account Cockpit
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                🟢 Session Protected
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] font-mono text-content-muted">
+              <span>Device: <strong className="text-content-primary">{statusSnapshot.deviceStatus.deviceName}</strong></span>
+              <span>•</span>
+              <span className="text-emerald-400 flex items-center gap-1">
+                <Wifi className="w-3 h-3" /> Synced Just Now
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+            {/* Account */}
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle">
+              <div className="text-[10px] font-mono text-content-muted uppercase">Account</div>
+              <div className="font-bold text-emerald-400 mt-0.5 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span>Signed In</span>
+              </div>
+              <div className="text-[10px] font-mono text-content-muted mt-0.5">MFA Active</div>
+            </div>
+
+            {/* Website Activity */}
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle">
+              <div className="text-[10px] font-mono text-content-muted uppercase">App Activity</div>
+              <div className="font-bold text-emerald-400 mt-0.5 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Active</span>
+              </div>
+              <div className="text-[10px] font-mono text-content-muted mt-0.5">Foreground</div>
+            </div>
+
+            {/* Work Status */}
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle">
+              <div className="text-[10px] font-mono text-content-muted uppercase">Work Status</div>
+              <div className="font-bold text-blue-400 mt-0.5 capitalize flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                <span>{statusSnapshot.workStatus.replace('_', ' ')}</span>
+              </div>
+              <div className="text-[10px] font-mono text-content-muted mt-0.5">Voluntary</div>
+            </div>
+
+            {/* Attendance */}
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle">
+              <div className="text-[10px] font-mono text-content-muted uppercase">Attendance</div>
+              <div className="font-bold text-burgundy-soft mt-0.5 capitalize flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-burgundy-soft" />
+                <span>{activeClockIn ? 'Checked In' : 'Checked Out'}</span>
+              </div>
+              <div className="text-[10px] font-mono text-content-muted mt-0.5">
+                {activeClockIn ? 'Shift In Progress' : 'Off-duty'}
+              </div>
+            </div>
+
+            {/* Working Time */}
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle">
+              <div className="text-[10px] font-mono text-content-muted uppercase">Working Time</div>
+              <div className="font-bold text-content-primary mt-0.5 font-mono">
+                {formattedHours}
+              </div>
+              <div className="text-[10px] font-mono text-content-muted mt-0.5">Today</div>
+            </div>
+
+            {/* Next Scheduled */}
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle">
+              <div className="text-[10px] font-mono text-content-muted uppercase">Next Milestone</div>
+              <div className="font-bold text-content-primary mt-0.5 truncate">
+                Architecture Review
+              </div>
+              <div className="text-[10px] font-mono text-burgundy-soft mt-0.5">17:00 IST</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 02. DUAL STATUS & OPERATIONAL METRICS COCKPIT */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

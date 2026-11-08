@@ -113,3 +113,4 @@ export const SkillsPage: React.FC = () => {
     </div>
   );
 };
+

@@ -24,25 +24,30 @@ export default {
           muted: 'var(--text-muted)',
         },
         burgundy: {
-          DEFAULT: '#672B3C',
-          soft: '#8B465A',
-          glow: 'rgba(103, 43, 60, 0.35)',
-          deep: '#421622',
+          DEFAULT: '#6E2034',
+          soft: '#8F3B52',
+          glow: 'rgba(110, 32, 52, 0.35)',
+          deep: '#42101E',
+        },
+        terracotta: {
+          DEFAULT: '#D2583E',
+          soft: '#E4745D',
         },
         sreesh: {
-          DEFAULT: '#3E5463', // Slate Obsidian
-          light: '#5B788C',
-          glow: 'rgba(62, 84, 99, 0.3)',
+          DEFAULT: '#415A6C', // Titanium Slate
+          light: '#65869E',
+          glow: 'rgba(65, 90, 108, 0.3)',
         },
         mrithula: {
-          DEFAULT: '#7A3B4D', // Warm Rose Burgundy
-          light: '#9E5066',
-          glow: 'rgba(122, 59, 77, 0.3)',
+          DEFAULT: '#8A3B4E', // Warm Velvet Rose
+          light: '#B2576D',
+          glow: 'rgba(138, 59, 78, 0.3)',
         },
       },
       fontFamily: {
         display: ['Space Grotesk', 'Plus Jakarta Sans', 'sans-serif'],
         serif: ['Instrument Serif', 'Georgia', 'serif'],
+        hand: ['Caveat', 'cursive'],
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },

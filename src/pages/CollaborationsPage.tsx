@@ -123,3 +123,4 @@ export const CollaborationsPage: React.FC = () => {
     </div>
   );
 };
+

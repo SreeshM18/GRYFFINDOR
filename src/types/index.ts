@@ -108,3 +108,4 @@ export interface ContactMessage {
   createdAt: string;
   read: boolean;
 }
+

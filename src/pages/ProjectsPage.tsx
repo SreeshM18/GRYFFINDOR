@@ -173,3 +173,4 @@ export const ProjectsPage: React.FC = () => {
     </div>
   );
 };
+

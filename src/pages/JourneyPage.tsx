@@ -89,3 +89,4 @@ export const JourneyPage: React.FC = () => {
     </div>
   );
 };
+

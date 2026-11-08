@@ -142,3 +142,4 @@ CREATE POLICY "Members Manage Achievements" ON public.achievements FOR ALL TO au
 CREATE POLICY "Members Manage Tasks" ON public.workspace_tasks FOR ALL TO authenticated USING (true);
 CREATE POLICY "Members Manage Notes" ON public.workspace_notes FOR ALL TO authenticated USING (true);
 CREATE POLICY "Members Read Inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true);
+

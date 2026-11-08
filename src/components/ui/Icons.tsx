@@ -14,3 +14,4 @@ export const LinkedinIcon: React.FC<{ className?: string }> = ({ className = 'w-
     <circle cx="4" cy="4" r="2" />
   </svg>
 );
+

@@ -160,3 +160,4 @@ export const AchievementsPage: React.FC = () => {
     </div>
   );
 };
+

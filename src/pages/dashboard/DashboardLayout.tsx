@@ -127,9 +127,8 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 border-r border-border-subtle bg-surface-card/95 backdrop-blur-md p-5 flex flex-col justify-between shrink-0 overflow-y-auto transition-transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 border-r border-border-subtle bg-surface-card/95 backdrop-blur-md p-5 flex flex-col justify-between shrink-0 overflow-y-auto transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         <div className="space-y-6">
           {/* Elegant Gryffindor Typography Header (Zero Corporate Logo) */}
@@ -147,9 +146,8 @@ export const DashboardLayout: React.FC = () => {
             <Link
               to="/app/my-space"
               onClick={() => soundFx.playClick()}
-              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${
-                location.pathname === '/app/my-space' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
-              }`}
+              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${location.pathname === '/app/my-space' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
+                }`}
             >
               <Lock className="w-2.5 h-2.5" />
               <span>My Chamber</span>
@@ -157,18 +155,16 @@ export const DashboardLayout: React.FC = () => {
             <Link
               to="/app/dashboard"
               onClick={() => soundFx.playClick()}
-              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${
-                location.pathname === '/app/dashboard' || location.pathname === '/app/tasks' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
-              }`}
+              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${location.pathname === '/app/dashboard' || location.pathname === '/app/tasks' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
+                }`}
             >
               <span>Common Room</span>
             </Link>
             <Link
               to="/app/attendance"
               onClick={() => soundFx.playClick()}
-              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${
-                location.pathname === '/app/attendance' || location.pathname === '/app/reports' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
-              }`}
+              className={`p-1.5 rounded-lg text-center transition-colors flex items-center justify-center gap-1 ${location.pathname === '/app/attendance' || location.pathname === '/app/reports' ? 'bg-burgundy text-white font-bold' : 'text-content-secondary hover:text-content-primary'
+                }`}
             >
               <span>The Ledger</span>
             </Link>
@@ -184,42 +180,41 @@ export const DashboardLayout: React.FC = () => {
 
           {/* Nav Sections */}
           <nav className="space-y-5">
-            {navSections.map((sec, idx) => (
-              <div key={idx} className="space-y-1.5">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-content-muted px-2.5">
-                  {sec.group}
-                </span>
-                <div className="space-y-0.5">
-                  {sec.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = location.pathname === item.path;
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => {
-                          soundFx.playClick();
-                          setSidebarOpen(false);
-                        }}
-                        className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-                          active
-                            ? 'bg-surface-elevated text-content-primary border border-border-strong shadow-sm'
-                            : 'text-content-secondary hover:text-content-primary hover:bg-surface-elevated/40'
-                        }`}
-                      >
-                        <Icon className={`w-3.5 h-3.5 ${active ? 'text-burgundy-soft' : 'text-content-muted'}`} />
-                        <span>{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
+    {navSections.map((sec, idx) => (
+      <div key={idx} className="space-y-1.5">
+        <span className="text-[9px] font-mono uppercase tracking-wider text-content-muted px-2.5">
+          {sec.group}
+        </span>
+        <div className="space-y-0.5">
+          {sec.items.map((item) => {
+            const Icon = item.icon;
+            const active = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => {
+                  soundFx.playClick();
+                  setSidebarOpen(false);
+                }}
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors ${active
+                  ? 'bg-surface-elevated text-content-primary border border-border-strong shadow-sm'
+                  : 'text-content-secondary hover:text-content-primary hover:bg-surface-elevated/40'
+                  }`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${active ? 'text-burgundy-soft' : 'text-content-muted'}`} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
+      </div>
+    ))}
+  </nav>
+        </div >
 
-        {/* User Card & Public Switcher */}
-        <div className="pt-4 border-t border-border-subtle space-y-3">
+  {/* User Card & Public Switcher */ }
+  < div className = "pt-4 border-t border-border-subtle space-y-3" >
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-surface-elevated border border-border-strong flex items-center justify-center font-display font-bold text-xs text-burgundy-soft">
               {currentUser.name[0]}
@@ -247,13 +242,13 @@ export const DashboardLayout: React.FC = () => {
               <span>Logout</span>
             </button>
           </div>
-        </div>
-      </aside>
+        </div >
+      </aside >
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-6 sm:p-10 overflow-y-auto">
-        <Outlet />
-      </main>
-    </div>
+  {/* Main Content Area */ }
+  < main className = "flex-1 p-6 sm:p-10 overflow-y-auto" >
+    <Outlet />
+      </main >
+    </div >
   );
 };

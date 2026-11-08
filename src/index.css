@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark Mode Default (Primary Atmosphere) */
+  --bg-canvas: #090909;
+  --bg-surface-card: #141414;
+  --bg-surface-elevated: #1D1D1D;
+  --bg-surface-glass: rgba(20, 20, 20, 0.72);
+
+  --text-primary: #F5F3EF;
+  --text-secondary: #A5A5A5;
+  --text-muted: #6B6B6B;
+
+  --border-subtle: #222222;
+  --border-strong: #2E2E2E;
+
+  --accent-burgundy: #672B3C;
+  --accent-soft-burgundy: #8B465A;
+
+  --sreesh-accent: #3E5463;
+  --mrithula-accent: #7A3B4D;
+}
+
+[data-theme="light"] {
+  --bg-canvas: #F8F7F4;
+  --bg-surface-card: #FFFFFF;
+  --bg-surface-elevated: #F0EDE6;
+  --bg-surface-glass: rgba(255, 255, 255, 0.85);
+
+  --text-primary: #121212;
+  --text-secondary: #5A5A5A;
+  --text-muted: #8E8E8E;
+
+  --border-subtle: #E2DFD8;
+  --border-strong: #CCC7BC;
+
+  --accent-burgundy: #8B344B;
+  --accent-soft-burgundy: #A54F66;
+}
+
+/* Base resets & typography */
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* Custom editorial scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Print Stylesheet for ATS Resume */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-page {
+    page-break-after: always;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+}

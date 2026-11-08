@@ -28,6 +28,24 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     document.documentElement.setAttribute('data-design', currentDesign);
     localStorage.setItem('sm_signature_design', currentDesign);
+
+    // Restore any custom colors set in the Universal Color & Shade Laboratory
+    const customAccent = localStorage.getItem('sm_custom_accent_gold');
+    if (customAccent) {
+      document.documentElement.style.setProperty('--accent-gold', customAccent);
+    }
+    const customBg = localStorage.getItem('sm_custom_bg_canvas');
+    if (customBg) {
+      document.documentElement.style.setProperty('--bg-canvas', customBg);
+    }
+    const customCard = localStorage.getItem('sm_custom_surface_card');
+    if (customCard) {
+      document.documentElement.style.setProperty('--bg-surface-card', customCard);
+    }
+    const customElevated = localStorage.getItem('sm_custom_surface_elevated');
+    if (customElevated) {
+      document.documentElement.style.setProperty('--bg-surface-elevated', customElevated);
+    }
   }, [currentDesign]);
 
   const setDesign = (design: SignatureDesign) => {

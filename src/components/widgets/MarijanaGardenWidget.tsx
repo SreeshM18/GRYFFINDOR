@@ -107,13 +107,13 @@ export const MarijanaGardenWidget: React.FC = () => {
       {/* Grid: 3 Live Interactive Components */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* =========================================================
-            COMPONENT A: PANTONE COLOR SWATCH & CANVAS DOT MATRIX
+            COMPONENT A: PANTONE COLOR SWATCH & FULL SHADE CUSTOMIZER
         ========================================================= */}
         <div className="p-5 rounded-xl border border-border-subtle bg-surface-elevated/70 space-y-4">
           <div className="flex items-center justify-between text-xs font-mono text-content-muted">
             <span className="flex items-center gap-1.5 text-content-primary font-medium">
               <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-              Pantone Matrix
+              Pantone Matrix & Shade Lab
             </span>
             <span>{activeSwatch.pantone}</span>
           </div>
@@ -142,12 +142,26 @@ export const MarijanaGardenWidget: React.FC = () => {
                 RGB({activeSwatch.rgb})
               </span>
             </div>
-            <div className="relative z-10 text-right font-mono text-xs font-bold tracking-wider" style={{ color: activeSwatch.hex }}>
-              {activeSwatch.hex}
+            <div className="relative z-10 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  soundFx.playChime();
+                  document.documentElement.style.setProperty('--accent-gold', activeSwatch.hex);
+                  localStorage.setItem('sm_custom_accent_gold', activeSwatch.hex);
+                }}
+                className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all"
+                title="Apply this shade to entire website"
+              >
+                Apply to Website →
+              </button>
+              <span className="font-mono text-xs font-bold tracking-wider" style={{ color: activeSwatch.hex }}>
+                {activeSwatch.hex}
+              </span>
             </div>
           </div>
 
-          {/* 6 Clickable Swatches */}
+          {/* 6 Clickable Swatches + Custom Hex Input */}
           <div className="grid grid-cols-6 gap-2 pt-1">
             {PANTONE_SWATCHES.map((swatch) => (
               <button
@@ -171,8 +185,46 @@ export const MarijanaGardenWidget: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {/* Live Custom Hex / Color Input */}
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="text"
+              placeholder="Or type any hex / color (e.g. #66ccff)"
+              className="flex-1 bg-surface-card border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-mono text-content-primary focus:outline-none focus:border-pink-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = (e.target as HTMLInputElement).value.trim();
+                  if (val) {
+                    soundFx.playChime();
+                    const hex = val.startsWith('#') ? val : `#${val}`;
+                    setActiveSwatch({
+                      id: 'custom',
+                      name: 'Custom Pigment',
+                      pantone: 'Custom Hex',
+                      hex,
+                      rgb: 'Dynamic',
+                    });
+                  }
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('universal-color-lab');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/20 text-[11px] font-mono whitespace-nowrap transition-colors"
+            >
+              Full Lab ↑
+            </button>
+          </div>
+
           <p className="text-[11px] text-content-muted italic">
-            Click any swatch to modulate the generative dot field.
+            Click any swatch or type any color to modulate shades and apply site-wide.
           </p>
         </div>
 

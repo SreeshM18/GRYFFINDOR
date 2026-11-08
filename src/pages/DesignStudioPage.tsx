@@ -5,6 +5,7 @@ import { MarijanaGardenWidget } from '../components/widgets/MarijanaGardenWidget
 import { AritroTelemetryWidget } from '../components/widgets/AritroTelemetryWidget';
 import { FudaliMomentumWidget } from '../components/widgets/FudaliMomentumWidget';
 import { EyeballsBroadcastWidget } from '../components/widgets/EyeballsBroadcastWidget';
+import { UniversalColorLabWidget } from '../components/widgets/UniversalColorLabWidget';
 import {
   Palette,
   Check,
@@ -17,12 +18,13 @@ import {
   Compass,
   Cpu,
   MonitorCheck,
+  Sliders,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const DesignStudioPage: React.FC = () => {
   const { currentDesign, setDesign, preset } = useDesignSystem();
-  const [activeTab, setActiveTab] = useState<'all' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'color-lab' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 animate-fade-in">
@@ -171,10 +173,11 @@ export const DesignStudioPage: React.FC = () => {
           </div>
 
           {/* Widget Filter Pills */}
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-card border border-border-subtle text-xs font-mono">
+          <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-surface-card border border-border-subtle text-xs font-mono">
             {[
-              { id: 'all', label: 'All Widgets' },
-              { id: 'marijana', label: 'Marijana Swatches' },
+              { id: 'all', label: 'All Modules' },
+              { id: 'color-lab', label: '✦ Universal Color Lab' },
+              { id: 'marijana', label: 'Marijana Garden' },
               { id: 'aritro', label: 'Aritro Telemetry' },
               { id: 'fudali', label: 'Fudali Slider' },
               { id: 'eyeballs', label: 'Eyeballs Broadcast' },
@@ -196,6 +199,13 @@ export const DesignStudioPage: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* 0. UNIVERSAL COLOR & SHADE LABORATORY (Real-Time Website Customizer) */}
+        {(activeTab === 'all' || activeTab === 'color-lab') && (
+          <div className="space-y-3">
+            <UniversalColorLabWidget />
+          </div>
+        )}
 
         {/* 1. Marijana Pavlinić Digital Garden */}
         {(activeTab === 'all' || activeTab === 'marijana') && (

@@ -9,6 +9,11 @@ import {
   MeetingItem,
   ChatMessage,
   NotificationItem,
+  HabitItem,
+  FocusSession,
+  IdeaItem,
+  ADRRecord,
+  FinanceItem,
 } from '../types/workOs';
 
 class WorkOsStorage {
@@ -463,6 +468,402 @@ class WorkOsStorage {
     if (userId) return list.filter((d) => d.ownerId === userId || d.ownerId === 'shared');
     return list;
   }
+
+  // --- HABITS & DISCIPLINE ---
+  public getHabits(userId?: UserId): HabitItem[] {
+    const key = `${this.STORAGE_KEY_PREFIX}habits`;
+    const raw = localStorage.getItem(key);
+    let list: HabitItem[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      list = [
+        {
+          id: 'habit-1',
+          userId: 'sreesh',
+          title: 'LeetCode / Algorithmic Problem Solving',
+          category: 'coding',
+          frequency: 'daily',
+          currentStreak: 18,
+          bestStreak: 45,
+          completedDates: [today],
+          targetPerWeek: 7,
+          createdAt: '2026-10-01',
+        },
+        {
+          id: 'habit-2',
+          userId: 'sreesh',
+          title: 'Distributed Systems & Database Research (1hr)',
+          category: 'system_design',
+          frequency: 'weekdays',
+          currentStreak: 12,
+          bestStreak: 24,
+          completedDates: [today],
+          targetPerWeek: 5,
+          createdAt: '2026-10-05',
+        },
+        {
+          id: 'habit-3',
+          userId: 'mrithula',
+          title: 'Daily UI Micro-Interaction & Figma Prototype',
+          category: 'studio',
+          frequency: 'daily',
+          currentStreak: 21,
+          bestStreak: 30,
+          completedDates: [today],
+          targetPerWeek: 7,
+          createdAt: '2026-10-01',
+        },
+        {
+          id: 'habit-4',
+          userId: 'mrithula',
+          title: 'Design Critique & Creative Direction Study',
+          category: 'learning',
+          frequency: 'weekdays',
+          currentStreak: 14,
+          bestStreak: 28,
+          completedDates: [today],
+          targetPerWeek: 5,
+          createdAt: '2026-10-08',
+        },
+        {
+          id: 'habit-5',
+          userId: 'both',
+          title: 'Co-Founder Daily Standup & Roadmap Review',
+          category: 'studio',
+          frequency: 'weekdays',
+          currentStreak: 32,
+          bestStreak: 32,
+          completedDates: [today],
+          targetPerWeek: 5,
+          createdAt: '2026-09-15',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    if (userId) return list.filter((h) => h.userId === userId || h.userId === 'both');
+    return list;
+  }
+
+  public toggleHabit(habitId: string, dateStr: string): HabitItem | null {
+    const habits = this.getHabits();
+    const habit = habits.find((h) => h.id === habitId);
+    if (!habit) return null;
+
+    const exists = habit.completedDates.includes(dateStr);
+    if (exists) {
+      habit.completedDates = habit.completedDates.filter((d) => d !== dateStr);
+      habit.currentStreak = Math.max(0, habit.currentStreak - 1);
+    } else {
+      habit.completedDates.push(dateStr);
+      habit.currentStreak += 1;
+      if (habit.currentStreak > habit.bestStreak) {
+        habit.bestStreak = habit.currentStreak;
+      }
+    }
+
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}habits`, JSON.stringify(habits));
+    return habit;
+  }
+
+  public createHabit(habit: Omit<HabitItem, 'id' | 'createdAt' | 'currentStreak' | 'bestStreak' | 'completedDates'>): HabitItem {
+    const habits = this.getHabits();
+    const newHabit: HabitItem = {
+      ...habit,
+      id: `habit-${Date.now()}`,
+      currentStreak: 0,
+      bestStreak: 0,
+      completedDates: [],
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    habits.push(newHabit);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}habits`, JSON.stringify(habits));
+    return newHabit;
+  }
+
+  // --- FOCUS & DEEP WORK SESSIONS ---
+  public getFocusSessions(userId?: UserId): FocusSession[] {
+    const key = `${this.STORAGE_KEY_PREFIX}focus`;
+    const raw = localStorage.getItem(key);
+    let list: FocusSession[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'foc-1',
+          userId: 'sreesh',
+          mode: 'deep_work',
+          durationMinutes: 50,
+          completedAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+          taskTitle: 'Web Audio Ambient Soundscape Generator',
+          notes: 'Finished white/pink/binaural filter graphs.',
+        },
+        {
+          id: 'foc-2',
+          userId: 'mrithula',
+          mode: 'pomodoro',
+          durationMinutes: 25,
+          completedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+          taskTitle: 'Editorial Layout Grid Refinement',
+          notes: 'Fine-tuned asymmetric typographic margins.',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    if (userId) return list.filter((f) => f.userId === userId);
+    return list;
+  }
+
+  public logFocusSession(session: Omit<FocusSession, 'id' | 'completedAt'>): FocusSession {
+    const list = this.getFocusSessions();
+    const newSession: FocusSession = {
+      ...session,
+      id: `foc-${Date.now()}`,
+      completedAt: new Date().toISOString(),
+    };
+    list.unshift(newSession);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}focus`, JSON.stringify(list));
+    return newSession;
+  }
+
+  // --- IDEAS VAULT & ADRs ---
+  public getIdeas(): IdeaItem[] {
+    const key = `${this.STORAGE_KEY_PREFIX}ideas`;
+    const raw = localStorage.getItem(key);
+    let list: IdeaItem[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'idea-1',
+          userId: 'sreesh',
+          title: 'Zero-Copy SharedArrayBuffer Audio Visualizer',
+          description: 'Render 60fps real-time frequency FFT spectra directly into WebGL canvas without thread blocking.',
+          category: 'experiment',
+          impact: 'high',
+          effort: 'medium',
+          status: 'inbox',
+          createdAt: '2026-11-06',
+        },
+        {
+          id: 'idea-2',
+          userId: 'mrithula',
+          title: 'Generative Editorial Typography Engine',
+          description: 'A dynamic responsive typographic system that subtly alters glyph kerning and ligatures based on viewport velocity.',
+          category: 'product',
+          impact: 'high',
+          effort: 'high',
+          status: 'inbox',
+          createdAt: '2026-11-07',
+        },
+        {
+          id: 'idea-3',
+          userId: 'sreesh',
+          title: 'Supabase Vector Memory Bridge for Personal OS',
+          description: 'Store embeddings of our academic notes, daily diaries, and whitepapers to enable semantic Q&A.',
+          category: 'research',
+          impact: 'high',
+          effort: 'medium',
+          status: 'inbox',
+          createdAt: '2026-11-08',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    return list;
+  }
+
+  public createIdea(idea: Omit<IdeaItem, 'id' | 'createdAt' | 'status'>): IdeaItem {
+    const list = this.getIdeas();
+    const newIdea: IdeaItem = {
+      ...idea,
+      id: `idea-${Date.now()}`,
+      status: 'inbox',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    list.unshift(newIdea);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}ideas`, JSON.stringify(list));
+    return newIdea;
+  }
+
+  public getADRs(): ADRRecord[] {
+    const key = `${this.STORAGE_KEY_PREFIX}adrs`;
+    const raw = localStorage.getItem(key);
+    let list: ADRRecord[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'ADR-001',
+          title: 'Dual Architectural Layering (Public Editorial + Private Work OS)',
+          status: 'accepted',
+          authorId: 'sreesh',
+          coAuthorId: 'mrithula',
+          deciders: 'Sreesh M & Mrithula M',
+          date: '2026-11-08',
+          context: 'We required a unified identity that functions both as an award-winning creative studio portfolio and an internal enterprise-grade management tool for attendance, academics, internships, and tasks.',
+          decision: 'Build two interconnected sub-systems in a single Vite/React/TypeScript architecture: Public routes (`/`, `/sreesh`, `/mrithula`, `/projects`) and authenticated private routes (`/app/*`).',
+          consequences: 'Eliminates friction between external client showcases and internal day-to-day operations while keeping private documents and timesheets completely secure.',
+        },
+        {
+          id: 'ADR-002',
+          title: 'Zero Involuntary Surveillance & Self-Reported Attendance Honor Code',
+          status: 'accepted',
+          authorId: 'mrithula',
+          coAuthorId: 'sreesh',
+          deciders: 'Sreesh M & Mrithula M',
+          date: '2026-11-08',
+          context: 'Standard corporate attendance software often incorporates invasive keystroke logging, involuntary webcam captures, or background tracking.',
+          decision: 'Enforce explicit voluntary self-reporting. Time tracking is activated solely by co-founder initiation, with clear differentiation between self-reported and employer-verified logs.',
+          consequences: 'Builds a culture of mutual trust, psychological safety, and absolute agency over personal data.',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    return list;
+  }
+
+  public createADR(adr: Omit<ADRRecord, 'id' | 'date'>): ADRRecord {
+    const list = this.getADRs();
+    const nextNum = list.length + 1;
+    const newADR: ADRRecord = {
+      ...adr,
+      id: `ADR-${String(nextNum).padStart(3, '0')}`,
+      date: new Date().toISOString().split('T')[0],
+    };
+    list.unshift(newADR);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}adrs`, JSON.stringify(list));
+    return newADR;
+  }
+
+  // --- STUDIO FINANCE & SUBSCRIPTIONS ---
+  public getFinances(): FinanceItem[] {
+    const key = `${this.STORAGE_KEY_PREFIX}finances`;
+    const raw = localStorage.getItem(key);
+    let list: FinanceItem[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'fin-1',
+          name: 'sreeshmrithula.com & Domains',
+          category: 'domain',
+          amount: 1499,
+          currency: 'INR',
+          billingCycle: 'yearly',
+          nextBillingDate: '2027-11-01',
+          paidBy: 'sreesh',
+          splitRatio: '50/50',
+          url: 'https://porkbun.com',
+        },
+        {
+          id: 'fin-2',
+          name: 'Vercel Pro Team',
+          category: 'infrastructure',
+          amount: 20,
+          currency: 'USD',
+          billingCycle: 'monthly',
+          nextBillingDate: '2026-12-01',
+          paidBy: 'shared',
+          splitRatio: '50/50',
+          url: 'https://vercel.com',
+        },
+        {
+          id: 'fin-3',
+          name: 'Supabase Pro Platform',
+          category: 'infrastructure',
+          amount: 25,
+          currency: 'USD',
+          billingCycle: 'monthly',
+          nextBillingDate: '2026-12-05',
+          paidBy: 'shared',
+          splitRatio: '50/50',
+          url: 'https://supabase.com',
+        },
+        {
+          id: 'fin-4',
+          name: 'Figma Professional Workspace',
+          category: 'software',
+          amount: 15,
+          currency: 'USD',
+          billingCycle: 'monthly',
+          nextBillingDate: '2026-12-10',
+          paidBy: 'mrithula',
+          splitRatio: '50/50',
+          url: 'https://figma.com',
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    return list;
+  }
+
+  public createFinance(item: Omit<FinanceItem, 'id'>): FinanceItem {
+    const list = this.getFinances();
+    const newItem: FinanceItem = {
+      ...item,
+      id: `fin-${Date.now()}`,
+    };
+    list.push(newItem);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}finances`, JSON.stringify(list));
+    return newItem;
+  }
+
+  // --- MESSAGES & CO-FOUNDER QUICK SYNC ---
+  public getChatMessages(): ChatMessage[] {
+    const key = `${this.STORAGE_KEY_PREFIX}messages`;
+    const raw = localStorage.getItem(key);
+    let list: ChatMessage[] = raw ? JSON.parse(raw) : [];
+
+    if (list.length === 0) {
+      list = [
+        {
+          id: 'msg-1',
+          senderId: 'sreesh',
+          content: 'Hey Mrithula! I just finished wiring the custom Web Audio synthesizer and attendance ledger. Check out the clock-in timers!',
+          timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+          read: true,
+        },
+        {
+          id: 'msg-2',
+          senderId: 'mrithula',
+          content: 'Awesome! I updated the editorial typography scale and responsive margin rules. Everything looks super crisp on mobile and 4K displays.',
+          timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+          read: true,
+        },
+        {
+          id: 'msg-3',
+          senderId: 'sreesh',
+          content: 'Our college semester 7 attendance stats and internship deliverables are now isolated in their own dedicated modules too.',
+          timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+          read: true,
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    return list;
+  }
+
+  public sendChatMessage(senderId: UserId, content: string): ChatMessage {
+    const list = this.getChatMessages();
+    const newMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      senderId,
+      content,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+    list.push(newMsg);
+    localStorage.setItem(`${this.STORAGE_KEY_PREFIX}messages`, JSON.stringify(list));
+    return newMsg;
+  }
 }
 
 export const workOs = new WorkOsStorage();
+

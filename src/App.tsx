@@ -36,6 +36,11 @@ import { DashboardCalendar } from './pages/dashboard/DashboardCalendar';
 import { ReportsPage } from './pages/dashboard/ReportsPage';
 import { DashboardContent } from './pages/dashboard/DashboardContent';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
+import { FocusModePage } from './pages/dashboard/FocusModePage';
+import { HabitsPage } from './pages/dashboard/HabitsPage';
+import { IdeasAndAdrsPage } from './pages/dashboard/IdeasAndAdrsPage';
+import { FinancePage } from './pages/dashboard/FinancePage';
+import { MessagesPage } from './pages/dashboard/MessagesPage';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -124,6 +129,12 @@ export const AppContent: React.FC = () => {
             <Route path="reports" element={<ReportsPage />} />
             <Route path="analytics" element={<ReportsPage />} />
             <Route path="content" element={<DashboardContent />} />
+            <Route path="focus" element={<FocusModePage />} />
+            <Route path="habits" element={<HabitsPage />} />
+            <Route path="ideas" element={<IdeasAndAdrsPage />} />
+            <Route path="decisions" element={<IdeasAndAdrsPage />} />
+            <Route path="finance" element={<FinancePage />} />
+            <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="admin" element={<SettingsPage />} />
           </Route>

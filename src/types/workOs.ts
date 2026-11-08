@@ -152,3 +152,67 @@ export interface NotificationItem {
   timestamp: string;
   read: boolean;
 }
+
+export interface HabitItem {
+  id: string;
+  userId: UserId | 'both';
+  title: string;
+  category: 'coding' | 'system_design' | 'health' | 'learning' | 'studio';
+  frequency: 'daily' | 'weekdays';
+  currentStreak: number;
+  bestStreak: number;
+  completedDates: string[]; // YYYY-MM-DD
+  targetPerWeek: number;
+  createdAt: string;
+}
+
+export interface FocusSession {
+  id: string;
+  userId: UserId;
+  mode: 'pomodoro' | 'deep_work' | 'quick_sprint';
+  durationMinutes: number;
+  completedAt: string;
+  taskId?: string;
+  taskTitle?: string;
+  notes?: string;
+}
+
+export interface IdeaItem {
+  id: string;
+  userId: UserId;
+  title: string;
+  description: string;
+  category: 'product' | 'research' | 'open_source' | 'experiment';
+  impact: 'high' | 'medium' | 'low';
+  effort: 'high' | 'medium' | 'low';
+  status: 'inbox' | 'promoted_to_project' | 'archived';
+  createdAt: string;
+}
+
+export interface ADRRecord {
+  id: string;
+  title: string;
+  status: 'proposed' | 'accepted' | 'rejected' | 'superseded';
+  authorId: UserId;
+  coAuthorId?: UserId;
+  deciders: string;
+  date: string;
+  context: string;
+  decision: string;
+  consequences: string;
+}
+
+export interface FinanceItem {
+  id: string;
+  name: string;
+  category: 'infrastructure' | 'domain' | 'ai_api' | 'software' | 'hardware';
+  amount: number;
+  currency: 'INR' | 'USD';
+  billingCycle: 'monthly' | 'yearly' | 'one_time';
+  nextBillingDate?: string;
+  paidBy: UserId | 'shared';
+  splitRatio: '50/50' | '100/0';
+  url?: string;
+}
+
+

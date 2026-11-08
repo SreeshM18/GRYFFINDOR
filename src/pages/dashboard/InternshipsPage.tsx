@@ -275,3 +275,4 @@ export const InternshipsPage: React.FC = () => {
     </div>
   );
 };
+

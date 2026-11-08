@@ -152,3 +152,4 @@ export const AcademicsPage: React.FC = () => {
     </div>
   );
 };
+

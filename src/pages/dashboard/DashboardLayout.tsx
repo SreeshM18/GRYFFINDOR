@@ -19,6 +19,11 @@ import {
   ArrowLeft,
   Menu,
   X,
+  Timer,
+  Flame,
+  Lightbulb,
+  CreditCard,
+  MessageSquare,
 } from 'lucide-react';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { workOs } from '../../services/workOsStorage';
@@ -55,15 +60,25 @@ export const DashboardLayout: React.FC = () => {
         { path: '/app/dashboard', label: 'Command Center', icon: LayoutDashboard },
         { path: '/app/attendance', label: 'Attendance & Clock-In', icon: Clock },
         { path: '/app/status', label: 'Live Work Status', icon: Activity },
+        { path: '/app/focus', label: 'Focus & Deep Work', icon: Timer },
       ],
     },
     {
-      group: 'PRODUCTIVITY',
+      group: 'PRODUCTIVITY & DISCIPLINE',
       items: [
         { path: '/app/tasks', label: 'Kanban Tasks', icon: CheckSquare },
+        { path: '/app/habits', label: 'Habits & Discipline', icon: Flame },
         { path: '/app/projects', label: 'Projects & Repos', icon: FolderGit2 },
         { path: '/app/calendar', label: 'Calendar & Deadlines', icon: Calendar },
         { path: '/app/notes', label: 'Markdown Knowledge', icon: BookOpen },
+      ],
+    },
+    {
+      group: 'STUDIO & STRATEGY',
+      items: [
+        { path: '/app/messages', label: 'Co-Founder Channel', icon: MessageSquare },
+        { path: '/app/ideas', label: 'Ideas & ADR Decisions', icon: Lightbulb },
+        { path: '/app/finance', label: 'Studio Finance & Subs', icon: CreditCard },
       ],
     },
     {

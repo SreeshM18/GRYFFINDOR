@@ -236,3 +236,4 @@ export const LeavePage: React.FC = () => {
     </div>
   );
 };
+

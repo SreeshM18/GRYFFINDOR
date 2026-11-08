@@ -104,3 +104,4 @@ export const QuickDesignPicker: React.FC = () => {
     </div>
   );
 };
+

@@ -183,3 +183,4 @@ export const FudaliMomentumWidget: React.FC = () => {
     </div>
   );
 };
+

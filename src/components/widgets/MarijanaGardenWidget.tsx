@@ -306,3 +306,4 @@ export const MarijanaGardenWidget: React.FC = () => {
     </div>
   );
 };
+

@@ -17,13 +17,16 @@ export const HomePage: React.FC = () => {
   const aethel = INITIAL_PROJECTS.find((p) => p.id === 'aethel-intelligence')!;
 
   return (
-    <div className="relative z-10 space-y-40 pb-36">
-      {/* Floating Spatial Telemetry HUD (Inspired by Aritro.xyz & Yuki Asakura) */}
+    <div className="relative z-10 pb-36">
+      {/* Floating Spatial Telemetry HUD (Fixed viewport overlay, separated from flow) */}
       <DimensionalHUD onDimensionChange={(dim) => setCurrentDimension(dim)} />
-      {/* =========================================================================
-          01. ASYMMETRIC OVERSIZED EDITORIAL HERO
-      ========================================================================= */}
-      <section className="relative min-h-[92vh] flex flex-col justify-between px-4 sm:px-8 lg:px-12 pt-8 pb-12 overflow-hidden">
+
+      {/* Main Flow Content Container */}
+      <div className="space-y-28 sm:space-y-36">
+        {/* =========================================================================
+            01. ASYMMETRIC OVERSIZED EDITORIAL HERO
+        ========================================================================= */}
+        <section className="relative min-h-[90vh] flex flex-col justify-between px-4 sm:px-8 lg:px-12 pt-3 sm:pt-4 pb-12 overflow-hidden">
         {/* Subtle Warm Atmospheric Glow */}
         <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-burgundy/10 rounded-full blur-[160px] pointer-events-none" />
 
@@ -579,5 +582,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
     </div>
-  );
+  </div>
+);
 };

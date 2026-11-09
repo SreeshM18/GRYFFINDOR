@@ -23,9 +23,13 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const DesignStudioPage: React.FC = () => {
+interface DesignStudioPageProps {
+  defaultTab?: 'all' | 'god-mode' | 'emil-craft' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs';
+}
+
+export const DesignStudioPage: React.FC<DesignStudioPageProps> = ({ defaultTab = 'all' }) => {
   const { currentDesign, setDesign, preset } = useDesignSystem();
-  const [activeTab, setActiveTab] = useState<'all' | 'god-mode' | 'emil-craft' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'god-mode' | 'emil-craft' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>(defaultTab);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 animate-fade-in">

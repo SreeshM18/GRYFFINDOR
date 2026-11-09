@@ -120,6 +120,8 @@ export const AppContent: React.FC = () => {
 
           {/* Universal Website Design Engine & Studio */}
           <Route path="/designs" element={<DesignStudioPage />} />
+          <Route path="/designs/god-mode" element={<DesignStudioPage defaultTab="god-mode" />} />
+          <Route path="/god-mode" element={<Navigate to="/designs/god-mode" replace />} />
           <Route path="/studios" element={<DesignStudioPage />} />
 
           {/* 17-Dimension Atlas & Sources Library */}

@@ -14,7 +14,18 @@ export default defineConfig({
     port: 5173,
     host: true,
     watch: {
-      ignored: ['**/Use this now/**', '**/.git/**', '**/dist/**', '**/supabase/**', '**/.agents/**', '**/*.md', '**/skills-emil/**'],
+      ignored: [
+        '**/Use this now/**',
+        '**/.git/**',
+        '**/dist/**',
+        '**/supabase/**',
+        '**/.agents/**',
+        '**/*.md',
+        '**/*.zip',
+        '**/temp_god_mode/**',
+        '**/*.sql',
+        '**/skills-emil/**',
+      ],
     },
   },
 });

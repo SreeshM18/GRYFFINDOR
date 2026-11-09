@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { soundFx } from '../ui/AudioSynthesizer';
 import {
-  useSuperAdaptiveTheme,
-  SUPER_THEME_PRESETS,
-  ThemeTokens,
-} from '../../context/SuperAdaptiveThemeContext';
+  themeSyncService,
+  GodModeThemeModel,
+  StyleRules,
+  DeviceBreakpoint,
+  ThemeScope,
+  GOD_MODE_PRESETS,
+  GOD_MODE_FONTS,
+  GOD_MODE_SHADOWS,
+  validateValue,
+  compileGodModeCss,
+} from '../../services/themeSyncService';
 import {
   Pipette,
   Copy,
@@ -27,7 +34,25 @@ import {
   Compass,
   Square,
   Circle,
-  Hash,
+  Eye,
+  RotateCcw,
+  RotateCw,
+  Save,
+  Laptop,
+  Smartphone,
+  Tablet,
+  Monitor,
+  ShieldCheck,
+  SlidersHorizontal,
+  FileCode,
+  Activity,
+  User,
+  Settings,
+  Flame,
+  Radio,
+  Clock,
+  Briefcase,
+  BookOpen,
 } from 'lucide-react';
 
 // =========================================================================
@@ -112,9 +137,9 @@ function hslToRgb(h: number, s: number, l: number): RGB {
   let r: number, g: number, b: number;
 
   if (s === 0) {
-    r = g = b = l; // achromatic
+    r = g = b = l;
   } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
+    const f = (p: number, q: number, t: number) => {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
       if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -122,12 +147,11 @@ function hslToRgb(h: number, s: number, l: number): RGB {
       if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
       return p;
     };
-
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1 / 3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1 / 3);
+    r = f(p, q, h + 1 / 3);
+    g = f(p, q, h);
+    b = f(p, q, h - 1 / 3);
   }
 
   return {
@@ -137,7 +161,6 @@ function hslToRgb(h: number, s: number, l: number): RGB {
   };
 }
 
-// Relative Luminance for WCAG 2.1
 function getLuminance(r: number, g: number, b: number): number {
   const [rs, gs, bs] = [r, g, b].map((c) => {
     c /= 255;
@@ -159,14 +182,12 @@ interface HexNode {
   hex: string;
   x: number;
   y: number;
-  q: number;
-  r: number;
 }
 
 function generateHoneycombNodes(): HexNode[] {
   const nodes: HexNode[] = [];
-  const radius = 4; // 4 rings of hexagons = 61 cells
-  const size = 16; // hex side
+  const radius = 4;
+  const size = 16;
 
   for (let q = -radius; q <= radius; q++) {
     const r1 = Math.max(-radius, -q - radius);
@@ -174,88 +195,113 @@ function generateHoneycombNodes(): HexNode[] {
     for (let r = r1; r <= r2; r++) {
       const x = size * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
       const y = size * ((3 / 2) * r);
-
       const dist = Math.sqrt(q * q + r * r + q * r);
+
       if (dist === 0) {
-        nodes.push({ hex: '#FFFFFF', x, y, q, r });
+        nodes.push({ hex: '#FFFFFF', x, y });
       } else {
         const angle = (Math.atan2(y, x) * 180) / Math.PI;
         const normalizedAngle = (angle + 360) % 360;
         const sat = Math.min(100, Math.round((dist / radius) * 100));
         const light = Math.max(25, Math.min(75, Math.round(90 - (dist / radius) * 45)));
         const rgb = hslToRgb(normalizedAngle, sat, light);
-        nodes.push({ hex: rgbToHex(rgb.r, rgb.g, rgb.b), x, y, q, r });
+        nodes.push({ hex: rgbToHex(rgb.r, rgb.g, rgb.b), x, y });
       }
     }
   }
   return nodes;
 }
 
-export type ModulationTarget =
-  | 'accent'
-  | 'canvas'
-  | 'surfaces'
-  | 'nav'
-  | 'buttons'
-  | 'burgundy'
-  | 'text'
-  | 'heading'
-  | 'element';
+// Pantone-inspired Chromatic Matrix Reference Swatches
+const MATRIX_SWATCHES = [
+  { name: 'Flame Scarlet', hex: '#E11D48', note: 'PANTONE 18-1662 TCX' },
+  { name: 'Imperial Gold', hex: '#D3A625', note: 'PANTONE 14-0848 TCX' },
+  { name: 'Marigold Glow', hex: '#F59E0B', note: 'PANTONE 14-1064 TCX' },
+  { name: 'Aqua Cyber', hex: '#66CCFF', note: 'PANTONE 14-4318 TCX' },
+  { name: 'Velvet Orchid', hex: '#C25D89', note: 'PANTONE 18-2525 TCX' },
+  { name: 'Emerald Forest', hex: '#4ADE80', note: 'PANTONE 15-5534 TCX' },
+  { name: 'Stealth Slate', hex: '#475569', note: 'PANTONE 18-4005 TCX' },
+];
+
+export type GodModeStudioTab =
+  | 'design'
+  | 'composition'
+  | 'motion'
+  | 'content'
+  | 'system'
+  | 'preview-release';
 
 export const MasterGodModeStudio: React.FC = () => {
-  const {
-    tokens,
-    componentOverrides,
-    elementOverrides,
-    designModeActive,
-    selectedElementId,
-    setGlobalToken,
-    setComponentOverride,
-    setElementOverride,
-    applyPreset,
-    resetToDefaults,
-    exportCss,
-    exportJson,
-    importJson,
-    toggleDesignMode,
-  } = useSuperAdaptiveTheme();
+  // Active Studio Mode (1 of 6 Studios)
+  const [activeStudio, setActiveStudio] = useState<GodModeStudioTab>('design');
 
-  // Active target being modulated
-  const [activeTarget, setActiveTarget] = useState<ModulationTarget>('accent');
+  // Hierarchy Targets
+  const [currentScope, setCurrentScope] = useState<ThemeScope>('global');
+  const [currentBreakpoint, setCurrentBreakpoint] = useState<DeviceBreakpoint>('all');
+  const [currentTargetKey, setCurrentTargetKey] = useState<string>('all');
+  const [currentProperty, setCurrentProperty] = useState<keyof StyleRules>('accent');
 
-  // Master active color being edited in the picker
+  // Live Inspector
+  const [inspectMode, setInspectMode] = useState<boolean>(false);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+
+  // Sync Service Model
+  const [themeModel, setThemeModel] = useState<GodModeThemeModel>(() => themeSyncService.getCurrentModel());
+  const [currentUser, setCurrentUser] = useState<string>(() => themeSyncService.getActiveUser());
+
+  // History stack for Undo / Redo
+  const [historyStack, setHistoryStack] = useState<GodModeThemeModel[]>([]);
+  const [redoStack, setRedoStack] = useState<GodModeThemeModel[]>([]);
+
+  // Color picker state
   const [currentHex, setCurrentHex] = useState<string>(() => {
-    return localStorage.getItem('sm_custom_accent_gold') || tokens.accent || '#66ccff';
+    return themeModel.rules.global.all?.accent || '#D3A625';
   });
   const [inputVal, setInputVal] = useState<string>(currentHex);
-  const [copiedHex, setCopiedHex] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [alphaVal, setAlphaVal] = useState<number>(100);
-  const [showAlpha, setShowAlpha] = useState<boolean>(false);
+  const [cloudSynced, setCloudSynced] = useState<boolean>(true);
+  const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
-  // Geometry & Typography sub-controls
-  const [selectedFont, setSelectedFont] = useState<string>(tokens.font);
-  const [selectedHeadingFont, setSelectedHeadingFont] = useState<string>(tokens.headingFont);
-  const [currentRadius, setCurrentRadius] = useState<number>(tokens.radius || 16);
-  const [currentDensity, setCurrentDensity] = useState<number>(tokens.density || 100);
+  // Named versions list
+  const [savedVersions, setSavedVersions] = useState(() => themeSyncService.getSavedVersions());
+  const [versionNameInput, setVersionNameInput] = useState<string>('');
 
-  // RGB and HSL coordinates
-  const rgb = useMemo(() => hexToRgb(currentHex) || { r: 102, g: 204, b: 255 }, [currentHex]);
+  // Device Simulator state for Preview Studio
+  const [previewViewport, setPreviewViewport] = useState<'iphone' | 'tablet' | 'laptop' | 'desktop'>('desktop');
+
+  // Content Studio mock state
+  const [contentTitles, setContentTitles] = useState({
+    dashboard: 'Make your day yours to command.',
+    studies: 'Learning, but on your terms.',
+    portfolio: 'Two stories. One creative world.',
+  });
+
+  // Motion Studio state
+  const [motionStiffness, setMotionStiffness] = useState<number>(300);
+  const [motionDamping, setMotionDamping] = useState<number>(30);
+  const [tactilePress, setTactilePress] = useState<boolean>(true);
+  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
+
+  // Composition Studio state
+  const [containerMaxWidth, setContainerMaxWidth] = useState<string>('1280px');
+  const [gridColumns, setGridColumns] = useState<number>(12);
+  const [layoutPadding, setLayoutPadding] = useState<string>('24px');
+
+  // Colors and contrast
+  const rgb = useMemo(() => hexToRgb(currentHex) || { r: 211, g: 166, b: 37 }, [currentHex]);
   const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
-
-  // Contrast calculations
   const blackContrast = useMemo(() => getContrastRatio(rgb, { r: 0, g: 0, b: 0 }), [rgb]);
   const whiteContrast = useMemo(() => getContrastRatio(rgb, { r: 255, g: 255, b: 255 }), [rgb]);
 
+  // Honeycomb nodes memoized
+  const honeycombNodes = useMemo(() => generateHoneycombNodes(), []);
+
   // =========================================================================
   // MATHEMATICALLY PERFECTED 21-STEP TINT & SHADE LADDER (100% to 0%)
-  // Works flawlessly for ANY color in the universe (including pure #ffffff and #000000)
-  // Guaranteed 21 distinct, unique, monotonic shades with zero duplicates!
+  // Monotonic, guaranteed unique steps for ANY color (including pure white & black)
   // =========================================================================
   const tintShadeLadder = useMemo(() => {
     const steps: { pct: number; hex: string; isBase: boolean }[] = [];
-
-    // Determine where base color naturally anchors (rounded to 5%, clamped 5-95)
     const rawBasePct = Math.round(hsl.l / 5) * 5;
     const basePct = hsl.l >= 98 ? 100 : hsl.l <= 2 ? 0 : Math.max(5, Math.min(95, rawBasePct));
 
@@ -263,14 +309,12 @@ export const MasterGodModeStudio: React.FC = () => {
       if (pct === basePct) {
         steps.push({ pct, hex: currentHex, isBase: true });
       } else if (pct > basePct) {
-        // Tint: blend smoothly towards pure white (#FFFFFF)
         const factor = (pct - basePct) / (100 - basePct);
         const r = Math.round(rgb.r + (255 - rgb.r) * factor);
         const g = Math.round(rgb.g + (255 - rgb.g) * factor);
         const b = Math.round(rgb.b + (255 - rgb.b) * factor);
         steps.push({ pct, hex: rgbToHex(r, g, b), isBase: false });
       } else {
-        // Shade: blend smoothly towards pure black (#000000)
         const factor = basePct === 0 ? 0 : pct / basePct;
         const r = Math.round(rgb.r * factor);
         const g = Math.round(rgb.g * factor);
@@ -278,876 +322,1180 @@ export const MasterGodModeStudio: React.FC = () => {
         steps.push({ pct, hex: rgbToHex(r, g, b), isBase: false });
       }
     }
-
     return steps;
   }, [rgb, hsl, currentHex]);
 
-  // Honeycomb nodes memoized
-  const honeycombNodes = useMemo(() => generateHoneycombNodes(), []);
-
-  // Sync color when target element changes in God Mode inspect
+  // Subscribe to external sync changes
   useEffect(() => {
-    if (selectedElementId) {
-      setActiveTarget('element');
-      const el = document.getElementById(selectedElementId);
-      if (el) {
-        const compStyle = window.getComputedStyle(el);
-        const bg = compStyle.backgroundColor;
-        if (bg && bg !== 'rgba(0, 0, 0, 0)') {
-          const match = bg.match(/\d+/g);
-          if (match && match.length >= 3) {
-            const hex = rgbToHex(Number(match[0]), Number(match[1]), Number(match[2]));
-            setCurrentHex(hex);
-            setInputVal(hex);
-          }
+    const unsub = themeSyncService.subscribe((updated) => {
+      setThemeModel(updated);
+    });
+    void themeSyncService.initRealtimeSync((updated) => {
+      setThemeModel(updated);
+      setStatusMessage('Cloud sync: Theme updated from another device');
+      setTimeout(() => setStatusMessage(null), 3000);
+    });
+    return () => unsub();
+  }, []);
+
+  // Click-to-inspect listener on live DOM
+  useEffect(() => {
+    if (!inspectMode) return;
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement)?.closest('[data-theme-id]') as HTMLElement | null;
+      if (target) {
+        target.style.outline = '2px dashed #D3A625';
+        target.style.outlineOffset = '2px';
+      }
+    };
+
+    const handleMouseOut = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement)?.closest('[data-theme-id]') as HTMLElement | null;
+      if (target) {
+        target.style.outline = '';
+        target.style.outlineOffset = '';
+      }
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement)?.closest('[data-theme-id]') as HTMLElement | null;
+      if (target) {
+        e.preventDefault();
+        e.stopPropagation();
+        soundFx.playChime();
+        const id = target.getAttribute('data-theme-id');
+        if (id) {
+          setSelectedElementId(id);
+          setCurrentScope('element');
+          setCurrentTargetKey(id);
+          setStatusMessage(`Locked target: #${id}`);
+          setTimeout(() => setStatusMessage(null), 2500);
         }
       }
-    }
-  }, [selectedElementId]);
+    };
 
-  // =========================================================================
-  // REAL-TIME MODULATION DISPATCHER: APPLIES COLOR TO THE SELECTED TARGET
-  // =========================================================================
-  const applyColorToTarget = useCallback(
-    (color: string, target: ModulationTarget = activeTarget) => {
-      const root = document.documentElement;
+    document.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseout', handleMouseOut);
+    document.addEventListener('click', handleClick, true);
 
-      switch (target) {
-        case 'accent':
-          setGlobalToken('accent', color);
-          setGlobalToken('buttonBg', color);
-          root.style.setProperty('--accent-gold', color);
-          root.style.setProperty('--accent-gold-soft', tintShadeLadder[4]?.hex || color);
-          localStorage.setItem('sm_custom_accent_gold', color);
-          break;
+    return () => {
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('click', handleClick, true);
+    };
+  }, [inspectMode]);
 
-        case 'canvas':
-          setGlobalToken('canvas', color);
-          root.style.setProperty('--bg-canvas', color);
-          localStorage.setItem('sm_custom_bg_canvas', color);
-          // If light canvas is chosen, balance contrast automatically
-          if (whiteContrast < 2.5 && blackContrast > 6) {
-            setGlobalToken('text', '#0B0B0C');
-            root.style.setProperty('--text-primary', '#0B0B0C');
-            root.style.setProperty('--text-secondary', '#242428');
-            root.style.setProperty('--text-muted', '#4A4A52');
-          }
-          break;
+  // Apply value to active target
+  const applyPropertyValue = useCallback(
+    (prop: keyof StyleRules, val: string) => {
+      const safe = validateValue(prop, val);
+      if (!safe) return;
 
-        case 'surfaces':
-          setGlobalToken('surface', color);
-          setGlobalToken('cardBg', color);
-          root.style.setProperty('--bg-surface-card', color);
-          root.style.setProperty('--bg-surface-elevated', tintShadeLadder[14]?.hex || color);
-          localStorage.setItem('sm_custom_surface_card', color);
-          localStorage.setItem('sm_custom_surface_elevated', tintShadeLadder[14]?.hex || color);
-          break;
+      // Push history for undo
+      setHistoryStack((prev) => [...prev.slice(-30), JSON.parse(JSON.stringify(themeModel))]);
+      setRedoStack([]);
 
-        case 'nav':
-          setComponentOverride('nav', { bg: color });
-          root.style.setProperty('--comp-nav-bg', color);
-          break;
+      const updated = JSON.parse(JSON.stringify(themeModel)) as GodModeThemeModel;
+      if (currentScope === 'global') {
+        (updated.rules.global.all as any)[prop] = safe;
+      } else {
+        updated.rules[currentScope] = updated.rules[currentScope] || {};
+        updated.rules[currentScope][currentTargetKey] = updated.rules[currentScope][currentTargetKey] || {};
+        updated.rules[currentScope][currentTargetKey][currentBreakpoint] =
+          updated.rules[currentScope][currentTargetKey][currentBreakpoint] || {};
 
-        case 'buttons':
-          setComponentOverride('button', { bg: color });
-          setGlobalToken('buttonBg', color);
-          root.style.setProperty('--theme-button-bg', color);
-          break;
-
-        case 'burgundy':
-          root.style.setProperty('--accent-burgundy', color);
-          localStorage.setItem('sm_custom_accent_burgundy', color);
-          break;
-
-        case 'text':
-          setGlobalToken('text', color);
-          root.style.setProperty('--text-primary', color);
-          break;
-
-        case 'heading':
-          setGlobalToken('headingColor', color);
-          root.style.setProperty('--text-heading', color);
-          break;
-
-        case 'element':
-          if (selectedElementId) {
-            setElementOverride(selectedElementId, { bg: color });
-            const el = document.getElementById(selectedElementId);
-            if (el) el.style.backgroundColor = color;
-          }
-          break;
+        (updated.rules[currentScope][currentTargetKey][currentBreakpoint] as any)[prop] = safe;
       }
+
+      setThemeModel(updated);
+      void themeSyncService.saveTheme(updated).then(({ syncedToCloud }) => {
+        setCloudSynced(syncedToCloud);
+      });
     },
-    [
-      activeTarget,
-      selectedElementId,
-      setGlobalToken,
-      setComponentOverride,
-      setElementOverride,
-      tintShadeLadder,
-      whiteContrast,
-      blackContrast,
-    ]
+    [themeModel, currentScope, currentTargetKey, currentBreakpoint]
   );
 
-  // When a hex color is picked in Honeycomb, ladder, or sliders
-  const handleColorSelect = (newHex: string) => {
+  const handleColorPick = (hex: string) => {
     soundFx.playClick();
-    setCurrentHex(newHex);
-    setInputVal(newHex);
-    applyColorToTarget(newHex);
-  };
-
-  const handleRgbSlider = (channel: 'r' | 'g' | 'b', val: number) => {
-    const newRgb = { ...rgb, [channel]: val };
-    const hex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
     setCurrentHex(hex);
     setInputVal(hex);
-    applyColorToTarget(hex);
+    applyPropertyValue(currentProperty, hex);
   };
 
-  const handleHslSlider = (channel: 'h' | 's' | 'l', val: number) => {
-    const newHsl = { ...hsl, [channel]: val };
-    const newRgb = hslToRgb(newHsl.h, newHsl.s, newHsl.l);
-    const hex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
-    setCurrentHex(hex);
-    setInputVal(hex);
-    applyColorToTarget(hex);
-  };
-
-  const handleInputSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    let val = inputVal.trim();
-    if (!val.startsWith('#') && /^[0-9A-Fa-f]{3,6}$/.test(val)) {
-      val = '#' + val;
-    }
-    if (hexToRgb(val)) {
-      soundFx.playChime();
-      setCurrentHex(val);
-      applyColorToTarget(val);
-    }
-  };
-
-  const handleEyeDropper = async () => {
-    if ('EyeDropper' in window) {
-      try {
-        soundFx.playClick();
-        const eyeDropper = new (window as any).EyeDropper();
-        const result = await eyeDropper.open();
-        if (result?.sRGBHex) {
-          soundFx.playChime();
-          setCurrentHex(result.sRGBHex);
-          setInputVal(result.sRGBHex);
-          applyColorToTarget(result.sRGBHex);
-        }
-      } catch {
-        // cancelled
-      }
-    } else {
-      alert('The native EyeDropper is supported in Chrome, Edge, and Opera desktop browsers.');
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
+  const handleUndo = () => {
+    if (historyStack.length === 0) return;
     soundFx.playClick();
-    void navigator.clipboard.writeText(text);
-    setCopiedHex(text);
-    setTimeout(() => setCopiedHex(null), 1800);
+    const prev = historyStack[historyStack.length - 1];
+    setRedoStack((r) => [...r, JSON.parse(JSON.stringify(themeModel))]);
+    setHistoryStack((h) => h.slice(0, -1));
+    setThemeModel(prev);
+    themeSyncService.saveTheme(prev);
+    setStatusMessage('Undone visual modification');
+    setTimeout(() => setStatusMessage(null), 2000);
   };
 
-  const handleResetDefaults = () => {
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
     soundFx.playClick();
-    resetToDefaults();
-    const root = document.documentElement;
-    root.style.removeProperty('--accent-gold');
-    root.style.removeProperty('--accent-gold-soft');
-    root.style.removeProperty('--accent-burgundy');
-    root.style.removeProperty('--bg-canvas');
-    root.style.removeProperty('--bg-surface-card');
-    root.style.removeProperty('--bg-surface-elevated');
-    root.style.removeProperty('--text-primary');
-    root.style.removeProperty('--text-secondary');
-    root.style.removeProperty('--text-muted');
-    root.style.removeProperty('--theme-button-bg');
-    root.style.removeProperty('--comp-nav-bg');
-    root.style.removeProperty('--theme-radius');
-    root.style.removeProperty('--theme-density');
+    const next = redoStack[redoStack.length - 1];
+    setHistoryStack((h) => [...h, JSON.parse(JSON.stringify(themeModel))]);
+    setRedoStack((r) => r.slice(0, -1));
+    setThemeModel(next);
+    themeSyncService.saveTheme(next);
+    setStatusMessage('Redone visual modification');
+    setTimeout(() => setStatusMessage(null), 2000);
+  };
 
-    localStorage.removeItem('sm_custom_accent_gold');
-    localStorage.removeItem('sm_custom_bg_canvas');
-    localStorage.removeItem('sm_custom_surface_card');
-    localStorage.removeItem('sm_custom_surface_elevated');
-    localStorage.removeItem('sm_custom_accent_burgundy');
-
-    setCurrentHex('#D3A625');
-    setInputVal('#D3A625');
-    setStatusMessage('Restored Gryffindor Factory Defaults');
+  const handleSaveNamedVersion = () => {
+    if (!versionNameInput.trim()) return;
+    soundFx.playChime();
+    const list = themeSyncService.saveNamedVersion(versionNameInput.trim());
+    setSavedVersions(list);
+    setVersionNameInput('');
+    setStatusMessage(`Saved version snapshot: "${versionNameInput.trim()}"`);
     setTimeout(() => setStatusMessage(null), 2500);
+  };
+
+  const handleRestoreVersion = (idx: number) => {
+    soundFx.playChime();
+    const restored = themeSyncService.restoreVersion(idx);
+    if (restored) {
+      setThemeModel(restored);
+      setStatusMessage(`Restored version: "${savedVersions[idx]?.name}"`);
+      setTimeout(() => setStatusMessage(null), 2500);
+    }
+  };
+
+  const handleExportJson = () => {
+    soundFx.playClick();
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(themeModel, null, 2));
+    const dl = document.createElement('a');
+    dl.setAttribute('href', dataStr);
+    dl.setAttribute('download', `gryffindor-godmode-${themeModel.name.toLowerCase().replace(/\s+/g, '-')}.json`);
+    dl.click();
+    dl.remove();
   };
 
   const handleExportCss = () => {
     soundFx.playClick();
-    const css = exportCss();
+    const css = compileGodModeCss(themeModel);
     void navigator.clipboard.writeText(css);
-    setStatusMessage('Copied Full CSS Variables to Clipboard');
+    setStatusMessage('Compiled CSS Variables copied to clipboard');
     setTimeout(() => setStatusMessage(null), 2500);
   };
 
-  // Target Options Descriptor
-  const TARGET_OPTIONS: { id: ModulationTarget; label: string; icon: any; desc: string }[] = [
-    { id: 'accent', label: 'Primary Accent', icon: Sparkles, desc: 'Buttons, active glows, badges & border highlights' },
-    { id: 'canvas', label: 'Global Canvas', icon: Layout, desc: 'Deep background canvas of entire Gryffindor OS' },
-    { id: 'surfaces', label: 'Cards & Panels', icon: Square, desc: 'Widgets, elevated cards and modal containers' },
-    { id: 'nav', label: 'Navigation Bar', icon: Compass, desc: 'Top command header, blur backdrop and nav items' },
-    { id: 'buttons', label: 'Buttons & CTAs', icon: Circle, desc: 'Tactile press buttons, pill actions and primary triggers' },
-    { id: 'burgundy', label: 'Velvet Secondary', icon: Zap, desc: 'Gryffindor imperial scarlet & deep velvet trims' },
-    { id: 'heading', label: 'Heading Text', icon: Type, desc: 'Display font and hero title typography' },
-    { id: 'element', label: selectedElementId ? `Element #${selectedElementId}` : 'Click Element', icon: Crosshair, desc: 'Directly style any hovered element live on screen' },
-  ];
+  const handleSwitchUser = (user: 'sreesh' | 'mrithula') => {
+    soundFx.playClick();
+    setCurrentUser(user);
+    localStorage.setItem(
+      'sm_auth_user',
+      JSON.stringify({
+        id: user,
+        name: user === 'sreesh' ? 'Sreesh M' : 'Mrithula',
+        role: user === 'sreesh' ? 'Lead Systems Architect' : 'Creative Director',
+        email: user === 'sreesh' ? 'sreesh716@gmail.com' : 'mrithula@sreeshmrithula.com',
+      })
+    );
+    const userTheme = themeSyncService.loadLocalTheme();
+    setThemeModel(userTheme);
+    themeSyncService.applyModel(userTheme);
+    setStatusMessage(`Switched active workspace profile to ${user === 'sreesh' ? 'Sreesh' : 'Mrithula'}`);
+    setTimeout(() => setStatusMessage(null), 2500);
+  };
 
   return (
-    <div id="master-god-mode-controller" className="space-y-6 scroll-mt-24">
+    <div id="master-god-mode-controller" className="space-y-6 scroll-mt-24 font-sans text-content-primary">
       {/* =========================================================================
           COMMAND DECK BANNER & MASTER CONTROLLER STATUS
       ========================================================================= */}
-      <div className="p-6 rounded-3xl border border-border-subtle bg-surface-card/90 backdrop-blur-2xl shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
-        {/* Ambient Top Glow */}
+      <div className="p-6 rounded-3xl border border-border-subtle bg-surface-card/95 backdrop-blur-2xl shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
+        {/* Dynamic Ambient Flare */}
         <div
-          className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-[100px] opacity-25 pointer-events-none transition-colors duration-700"
+          className="absolute -top-24 -right-24 w-96 h-96 rounded-full blur-[120px] opacity-25 pointer-events-none transition-colors duration-700"
           style={{ backgroundColor: currentHex }}
         />
 
-        <div className="space-y-2 relative z-10">
+        <div className="space-y-2 relative z-10 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-sm animate-pulse"
               style={{ backgroundColor: currentHex }}
             />
-            <h2 className="font-display font-extrabold text-2xl text-content-primary tracking-tight">
-              ⚡ MASTER GOD MODE — FULL VISUAL & UI CONTROLLER
-            </h2>
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight">
+              🦁 GRYFFINDOR OS — MASTER GOD MODE
+            </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-gold/15 text-gold border border-gold/30 font-bold">
-              SITE-WIDE MODULATOR
+              v2.0 PRODUCTION ENGINE
             </span>
-            {designModeActive && (
+            {inspectMode && (
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 animate-pulse font-bold">
                 ● LIVE INSPECTOR ACTIVE
               </span>
             )}
           </div>
-          <p className="text-xs text-content-secondary max-w-2xl leading-relaxed">
-            Real-time command center for all colors, components, typography, geometry, and live element styling across Gryffindor OS. Every change is applied live to the entire website and persisted across sessions.
+          <p className="text-xs text-content-secondary leading-relaxed">
+            One central control center for every color, component, layout, and animation across Gryffindor OS.
+            Independent personal profiles for Sreesh & Mrithula with Supabase cloud synchronization.
           </p>
+
+          {/* User Profile Switcher & Device Sync Telemetry */}
+          <div className="flex flex-wrap items-center gap-4 pt-1 text-xs font-mono">
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-elevated border border-border-subtle">
+              <span className="text-content-muted pl-2 text-[11px]">PROFILE:</span>
+              <button
+                type="button"
+                onClick={() => handleSwitchUser('sreesh')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  currentUser === 'sreesh'
+                    ? 'bg-gold text-black shadow-sm'
+                    : 'text-content-muted hover:text-content-primary'
+                }`}
+              >
+                Sreesh M
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchUser('mrithula')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  currentUser === 'mrithula'
+                    ? 'bg-pink-500 text-white shadow-sm'
+                    : 'text-content-muted hover:text-content-primary'
+                }`}
+              >
+                Mrithula
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-content-muted">
+              <span className={`w-2 h-2 rounded-full ${cloudSynced ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} />
+              <span>{cloudSynced ? 'Supabase Synced' : 'Offline Storage'}</span>
+              <span>•</span>
+              <span>Mac • iPhone • Windows</span>
+            </div>
+          </div>
         </div>
 
-        {/* Global Action Tools */}
+        {/* Global Toolbar Actions */}
         <div className="flex flex-wrap items-center gap-2 relative z-10">
           <button
             type="button"
-            onClick={toggleDesignMode}
-            className={`px-3.5 py-2 rounded-xl font-mono text-xs font-bold transition-all shadow-md flex items-center gap-1.5 border active:scale-95 ${
-              designModeActive
+            onClick={handleUndo}
+            disabled={historyStack.length === 0}
+            className="p-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary disabled:opacity-30 border border-border-subtle transition-all active:scale-95 shadow-sm"
+            title="Undo (Ctrl+Z)"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={redoStack.length === 0}
+            className="p-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary disabled:opacity-30 border border-border-subtle transition-all active:scale-95 shadow-sm"
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <RotateCw className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              soundFx.playClick();
+              setInspectMode(!inspectMode);
+            }}
+            className={`px-3.5 py-2.5 rounded-xl font-mono text-xs font-bold transition-all shadow-md flex items-center gap-1.5 border active:scale-95 ${
+              inspectMode
                 ? 'bg-emerald-500 text-black border-emerald-400 animate-pulse'
                 : 'bg-gold/15 hover:bg-gold/25 text-gold border-gold/30'
             }`}
-            title="Click any element on your website to select and style it directly"
+            title="Click any element on the live website to inspect and style it"
           >
-            <Crosshair className="w-3.5 h-3.5" />
-            <span>{designModeActive ? 'Inspector Active' : '⚡ Click-to-Inspect'}</span>
+            <Crosshair className="w-4 h-4" />
+            <span>{inspectMode ? 'Inspector ON' : '⚡ Inspect Element'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportCss}
-            className="px-3 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95 flex items-center gap-1.5"
-            title="Copy all custom properties to CSS"
+            className="px-3.5 py-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+            title="Export compiled CSS variables"
           >
-            <Copy className="w-3.5 h-3.5 text-gold" />
+            <FileCode className="w-4 h-4 text-gold" />
             <span>Export CSS</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleResetDefaults}
-            className="p-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-muted hover:text-content-primary border border-border-subtle transition-all active:scale-95"
-            title="Reset to default Gryffindor Obsidian & Gold system"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* Status Notice Toast */}
       {statusMessage && (
-        <div className="p-3 rounded-2xl bg-gold/15 border border-gold/30 text-gold text-xs font-mono font-bold flex items-center gap-2 animate-fade-in">
+        <div className="p-3.5 rounded-2xl bg-gold/15 border border-gold/30 text-gold text-xs font-mono font-bold flex items-center gap-2 animate-fade-in shadow-md">
           <Sparkles className="w-4 h-4" />
           <span>{statusMessage}</span>
         </div>
       )}
 
       {/* =========================================================================
-          TARGET SELECTOR DECK (CONTROL "EACH AND EVERYTHING")
+          THE SIX INTERCONNECTED CONTROL STUDIOS (NAVIGATION TABS)
       ========================================================================= */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-mono text-content-muted px-1">
-          <span className="flex items-center gap-1 text-content-primary font-bold">
-            <Layers className="w-3.5 h-3.5 text-gold" />
-            SELECT TARGET TO MODULATE:
-          </span>
-          <span className="text-[11px]">
-            Active Target: <span className="text-gold font-bold uppercase">{activeTarget}</span>
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-          {TARGET_OPTIONS.map((t) => {
-            const Icon = t.icon;
-            const isActive = activeTarget === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => {
-                  soundFx.playClick();
-                  setActiveTarget(t.id);
-                  if (t.id === 'element' && !designModeActive) {
-                    toggleDesignMode();
-                  }
-                }}
-                className={`p-3 rounded-2xl border text-left transition-all active:scale-95 flex flex-col justify-between gap-1.5 ${
-                  isActive
-                    ? 'bg-surface-elevated border-gold ring-1 ring-gold shadow-lg'
-                    : 'bg-surface-card hover:bg-surface-elevated/60 border-border-subtle text-content-muted'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-gold' : 'text-content-secondary'}`} />
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />}
-                </div>
-                <div>
-                  <span className={`text-xs font-mono font-bold block ${isActive ? 'text-content-primary' : 'text-content-secondary'}`}>
-                    {t.label}
-                  </span>
-                  <span className="text-[10px] text-content-muted line-clamp-1">
-                    {t.desc}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-surface-card border border-border-subtle shadow-md">
+        {[
+          { id: 'design', label: '🎨 Design Studio', desc: 'Colors, Palettes, Typography & Geometry' },
+          { id: 'composition', label: '📐 Composition Studio', desc: 'Layouts, Grids & Responsive Spacing' },
+          { id: 'motion', label: '✨ Motion Studio', desc: 'Spring Physics, Transitions & 3D' },
+          { id: 'content', label: '📝 Content Studio', desc: 'Page Titles, Text & Portfolio Metadata' },
+          { id: 'system', label: '⚙️ System Studio', desc: 'Widgets, Modules & Supported Integrations' },
+          { id: 'preview-release', label: '🚀 Preview & Release', desc: 'Multi-Device Simulator & Versions' },
+        ].map((tab) => {
+          const isActive = activeStudio === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                soundFx.playClick();
+                setActiveStudio(tab.id as GodModeStudioTab);
+              }}
+              className={`flex-1 min-w-[160px] py-3 px-4 rounded-xl text-left transition-all ${
+                isActive
+                  ? 'bg-surface-elevated border border-gold/40 ring-1 ring-gold/20 shadow-md'
+                  : 'hover:bg-surface-elevated/40 text-content-muted hover:text-content-primary border border-transparent'
+              }`}
+            >
+              <span className={`text-xs font-mono font-bold block ${isActive ? 'text-gold' : 'text-content-primary'}`}>
+                {tab.label}
+              </span>
+              <span className="text-[10px] text-content-muted block truncate mt-0.5">
+                {tab.desc}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* =========================================================================
-          THE FULL MASTER COLOR & SHADE CONTROLLER (HONEYCOMB + 21-SHADE + SLIDERS)
+          STUDIO 1: 🎨 DESIGN STUDIO (COLORS, PALETTES, TYPOGRAPHY & GEOMETRY)
       ========================================================================= */}
-      <div className="rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-border-subtle bg-surface-card/90 backdrop-blur-2xl">
-        {/* Dynamic Ambient Glow Behind Active Workspace */}
-        <div
-          className="absolute -top-32 -left-32 w-96 h-96 rounded-full blur-[140px] opacity-25 pointer-events-none transition-colors duration-700"
-          style={{ backgroundColor: currentHex }}
-        />
-        <div
-          className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full blur-[140px] opacity-20 pointer-events-none transition-colors duration-700"
-          style={{ backgroundColor: currentHex }}
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
-          {/* =====================================================================
-              LEFT PANEL (COL 1-4): HONEYCOMB WHEEL, INPUT, EYEDROPPER
-          ===================================================================== */}
-          <div className="lg:col-span-4 bg-surface-elevated/70 border border-border-subtle rounded-3xl p-5 shadow-xl space-y-5 text-content-primary backdrop-blur-xl">
-            {/* SVG Hexagonal Honeycomb Color Wheel (61 Cells) */}
-            <div className="flex justify-center items-center py-1">
-              <svg viewBox="-85 -85 170 170" className="w-60 h-60 drop-shadow-lg cursor-pointer overflow-visible">
-                {honeycombNodes.map((node, i) => {
-                  const isSelected = node.hex.toLowerCase() === currentHex.toLowerCase();
-                  return (
-                    <polygon
-                      key={i}
-                      points="0,-14.5 12.5,-7.2 12.5,7.2 0,14.5 -12.5,7.2 -12.5,-7.2"
-                      transform={`translate(${node.x}, ${node.y})`}
-                      fill={node.hex}
-                      stroke={isSelected ? '#D3A625' : 'rgba(255,255,255,0.15)'}
-                      strokeWidth={isSelected ? 2.8 : 0.8}
-                      className="transition-transform duration-150 hover:scale-125 hover:stroke-white hover:z-20 cursor-pointer"
-                      onClick={() => handleColorSelect(node.hex)}
-                    >
-                      <title>{node.hex}</title>
-                    </polygon>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Input & OK Button */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-mono font-medium text-content-muted block">
-                Enter color value or name:
-              </label>
-              <form onSubmit={handleInputSubmit} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  placeholder="e.g. #66ccff, crimson, gold"
-                  className="flex-1 bg-surface-card border border-border-subtle rounded-xl px-3 py-2 text-xs font-mono text-content-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/50 shadow-sm"
-                />
+      {activeStudio === 'design' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Target Granularity Deck */}
+          <div className="p-4 rounded-2xl bg-surface-card border border-border-subtle flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+            {/* Scope Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-content-muted font-bold">SCOPE:</span>
+              {(['global', 'workspace', 'page', 'component', 'element'] as ThemeScope[]).map((sc) => (
                 <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-gold hover:bg-gold-soft text-black font-mono text-xs font-bold shadow transition-colors active:scale-95"
-                >
-                  Apply
-                </button>
-              </form>
-            </div>
-
-            {/* Eyedropper & Current Hex Preview */}
-            <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={handleEyeDropper}
-                className="w-11 h-11 rounded-xl border border-border-subtle bg-surface-card hover:bg-surface-elevated flex items-center justify-center text-content-secondary hover:text-gold shadow-sm transition-colors active:scale-95"
-                title="Eyedropper: Pick any pixel on screen"
-              >
-                <Pipette className="w-5 h-5 text-content-primary" />
-              </button>
-
-              <div
-                className="w-12 h-11 rounded-xl border border-white/20 shadow-md transition-colors duration-300"
-                style={{ backgroundColor: currentHex }}
-              />
-
-              <div className="flex-1 text-right">
-                <span className="text-[10px] font-mono font-bold text-content-muted block uppercase tracking-wider">
-                  HEX CODE ({activeTarget.toUpperCase()})
-                </span>
-                <span className="text-sm font-mono font-bold text-content-primary">
-                  {currentHex.toUpperCase()}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* =====================================================================
-              CENTER STAGE (COL 5-9): BIG COLOR DISPLAY & DUAL SLIDERS & LIVE PREVIEW
-          ===================================================================== */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Massive Display & WCAG Telemetry */}
-            <div className="flex flex-col items-center justify-center text-center py-4 space-y-2">
-              <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
-                Target: {activeTarget}
-              </span>
-
-              <h1 className="text-6xl sm:text-7xl font-display font-extrabold tracking-tight select-all text-content-primary">
-                {currentHex.toLowerCase()}
-              </h1>
-
-              <div className="space-y-0.5 font-mono text-sm text-content-secondary">
-                <p>rgb({rgb.r}, {rgb.g}, {rgb.b})</p>
-                <p>hsl({hsl.h}, {hsl.s}%, {hsl.l}%)</p>
-              </div>
-
-              {/* Black / White Text Contrast Ratios with Telemetry Badges */}
-              <div className="flex items-center gap-3 pt-2 text-xs font-mono font-semibold">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-card border border-border-subtle shadow-sm">
-                  <span className="text-content-muted">Black text</span>
-                  <span className="font-bold text-content-primary">{blackContrast}:1</span>
-                  {blackContrast >= 4.5 ? (
-                    <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-card border border-border-subtle shadow-sm">
-                  <span className="text-content-muted">White text</span>
-                  <span className="font-bold text-content-primary">{whiteContrast}:1</span>
-                  {whiteContrast >= 4.5 ? (
-                    <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Precision Sliders Card (RGB & HSL) */}
-            <div className="bg-surface-elevated/70 border border-border-subtle text-content-primary rounded-3xl p-5 shadow-xl space-y-4 backdrop-blur-xl">
-              {/* RGB Row */}
-              <div className="space-y-2">
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  {/* R */}
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-rose-400">R</span>
-                    <span className="text-xs font-mono block text-content-secondary">{rgb.r}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="255"
-                      value={rgb.r}
-                      onChange={(e) => handleRgbSlider('r', Number(e.target.value))}
-                      className="w-full accent-rose-500 cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
-                    />
-                    <span className="text-[10px] font-mono text-content-muted block">
-                      {rgb.r.toString(16).padStart(2, '0')}
-                    </span>
-                  </div>
-
-                  {/* G */}
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-emerald-400">G</span>
-                    <span className="text-xs font-mono block text-content-secondary">{rgb.g}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="255"
-                      value={rgb.g}
-                      onChange={(e) => handleRgbSlider('g', Number(e.target.value))}
-                      className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
-                    />
-                    <span className="text-[10px] font-mono text-content-muted block">
-                      {rgb.g.toString(16).padStart(2, '0')}
-                    </span>
-                  </div>
-
-                  {/* B */}
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-blue-400">B</span>
-                    <span className="text-xs font-mono block text-content-secondary">{rgb.b}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="255"
-                      value={rgb.b}
-                      onChange={(e) => handleRgbSlider('b', Number(e.target.value))}
-                      className="w-full accent-blue-500 cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
-                    />
-                    <span className="text-[10px] font-mono text-content-muted block">
-                      {rgb.b.toString(16).padStart(2, '0')}
-                    </span>
-                  </div>
-
-                  {/* Alpha A */}
-                  <div className="space-y-1 opacity-80">
-                    <label className="text-xs font-mono font-bold text-content-primary flex items-center justify-center gap-1 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={showAlpha}
-                        onChange={(e) => setShowAlpha(e.target.checked)}
-                        className="rounded text-gold cursor-pointer"
-                      />
-                      <span>A</span>
-                    </label>
-                    <span className="text-xs font-mono block text-content-secondary">
-                      {showAlpha ? `${alphaVal}%` : '100%'}
-                    </span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      disabled={!showAlpha}
-                      value={alphaVal}
-                      onChange={(e) => setAlphaVal(Number(e.target.value))}
-                      className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none disabled:opacity-30"
-                    />
-                    <span className="text-[10px] font-mono text-content-muted block">
-                      {Math.round((alphaVal / 100) * 255).toString(16).padStart(2, '0')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* HSL Row */}
-              <div className="space-y-2 pt-2 border-t border-border-subtle">
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  {/* H */}
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-content-primary">H</span>
-                    <span className="text-xs font-mono block text-content-secondary">{hsl.h}°</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="360"
-                      value={hsl.h}
-                      onChange={(e) => handleHslSlider('h', Number(e.target.value))}
-                      className="w-full cursor-pointer h-2 rounded-lg appearance-none"
-                      style={{
-                        background:
-                          'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
-                      }}
-                    />
-                  </div>
-
-                  {/* S */}
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-content-primary">S</span>
-                    <span className="text-xs font-mono block text-content-secondary">{hsl.s}%</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={hsl.s}
-                      onChange={(e) => handleHslSlider('s', Number(e.target.value))}
-                      className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
-                    />
-                  </div>
-
-                  {/* L */}
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono font-bold text-content-primary">L</span>
-                    <span className="text-xs font-mono block text-content-secondary">{hsl.l}%</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={hsl.l}
-                      onChange={(e) => handleHslSlider('l', Number(e.target.value))}
-                      className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* LIVE GRYFFINDOR SPECIMEN PREVIEW CARD */}
-            <div className="p-4 rounded-2xl border border-border-subtle bg-surface-elevated/40 backdrop-blur-xl space-y-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-content-muted block">
-                LIVE COMPONENT TELEMETRY PREVIEW
-              </span>
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-surface-card border border-border-subtle">
-                <div className="space-y-1">
-                  <span className="text-xs font-bold text-content-primary block">
-                    Gryffindor Common Room Specimen
-                  </span>
-                  <span className="text-[11px] text-content-muted block">
-                    Telemetry: Active token applied live
-                  </span>
-                </div>
-                <button
+                  key={sc}
                   type="button"
-                  className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold shadow-md transition-all active:scale-95"
-                  style={{
-                    backgroundColor: tokens.accent,
-                    color: blackContrast > whiteContrast ? '#000000' : '#FFFFFF',
+                  onClick={() => {
+                    soundFx.playClick();
+                    setCurrentScope(sc);
                   }}
+                  className={`px-3 py-1.5 rounded-lg uppercase tracking-wider text-[11px] font-bold transition-all ${
+                    currentScope === sc
+                      ? 'bg-gold text-black shadow-sm'
+                      : 'bg-surface-elevated text-content-muted hover:text-content-primary'
+                  }`}
                 >
-                  Action Button
+                  {sc}
                 </button>
-              </div>
+              ))}
+            </div>
+
+            {/* Breakpoint Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-content-muted font-bold">BREAKPOINT:</span>
+              {(['all', 'desktop', 'tablet', 'mobile'] as DeviceBreakpoint[]).map((bp) => (
+                <button
+                  key={bp}
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setCurrentBreakpoint(bp);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg uppercase tracking-wider text-[11px] font-bold transition-all ${
+                    currentBreakpoint === bp
+                      ? 'bg-surface-elevated border border-gold text-gold font-extrabold shadow-sm'
+                      : 'bg-surface-elevated text-content-muted hover:text-content-primary'
+                  }`}
+                >
+                  {bp}
+                </button>
+              ))}
+            </div>
+
+            {/* Target Property */}
+            <div className="flex items-center gap-2">
+              <span className="text-content-muted font-bold">PROPERTY:</span>
+              <select
+                value={currentProperty}
+                onChange={(e) => setCurrentProperty(e.target.value as keyof StyleRules)}
+                className="bg-surface-elevated border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-content-primary focus:outline-none focus:border-gold"
+              >
+                <option value="accent">Primary Accent (--accent-gold)</option>
+                <option value="background">Canvas Background (--bg-canvas)</option>
+                <option value="card">Cards & Surfaces (--bg-surface-card)</option>
+                <option value="text">Primary Text (--text-primary)</option>
+                <option value="muted">Muted Text (--text-muted)</option>
+                <option value="border">Border Color (--border-subtle)</option>
+                <option value="radius">Border Radius</option>
+                <option value="font">Typography Font</option>
+              </select>
             </div>
           </div>
 
-          {/* =====================================================================
-              RIGHT PANEL (COL 10-12): 21 TINTS & SHADES LADDER (100% to 0%)
-          ===================================================================== */}
-          <div className="lg:col-span-3 space-y-1.5 bg-surface-elevated/40 border border-border-subtle p-3 rounded-3xl backdrop-blur-xl">
-            <div className="flex items-center justify-between text-[11px] font-mono text-content-muted px-2 pb-1 border-b border-border-subtle">
-              <span>21 SHADES LADDER</span>
-              <span>100% → 0%</span>
-            </div>
+          {/* Master 3-Column Studio Deck */}
+          <div className="rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-border-subtle bg-surface-card/90 backdrop-blur-2xl">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
+              {/* Left Panel: Honeycomb Wheel & Hex Input */}
+              <div className="lg:col-span-4 bg-surface-elevated/70 border border-border-subtle rounded-3xl p-5 shadow-xl space-y-5 backdrop-blur-xl">
+                <div className="flex justify-center items-center py-1">
+                  <svg viewBox="-85 -85 170 170" className="w-60 h-60 drop-shadow-lg cursor-pointer overflow-visible">
+                    {honeycombNodes.map((node, i) => {
+                      const isSelected = node.hex.toLowerCase() === currentHex.toLowerCase();
+                      return (
+                        <polygon
+                          key={i}
+                          points="0,-14.5 12.5,-7.2 12.5,7.2 0,14.5 -12.5,7.2 -12.5,-7.2"
+                          transform={`translate(${node.x}, ${node.y})`}
+                          fill={node.hex}
+                          stroke={isSelected ? '#D3A625' : 'rgba(255,255,255,0.15)'}
+                          strokeWidth={isSelected ? 2.8 : 0.8}
+                          className="transition-transform duration-150 hover:scale-125 hover:stroke-white hover:z-20 cursor-pointer"
+                          onClick={() => handleColorPick(node.hex)}
+                        >
+                          <title>{node.hex}</title>
+                        </polygon>
+                      );
+                    })}
+                  </svg>
+                </div>
 
-            <div className="space-y-1 max-h-[580px] overflow-y-auto no-scrollbar pr-0.5">
-              {tintShadeLadder.map((step) => {
-                const stepRgb = hexToRgb(step.hex) || { r: 0, g: 0, b: 0 };
-                const isDarkStep = getLuminance(stepRgb.r, stepRgb.g, stepRgb.b) < 0.45;
-                const isSelected = step.hex.toLowerCase() === currentHex.toLowerCase();
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono font-medium text-content-muted block">
+                    Hex or CSS Color Name:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={inputVal}
+                      onChange={(e) => setInputVal(e.target.value)}
+                      placeholder="#66ccff"
+                      className="flex-1 bg-surface-card border border-border-subtle rounded-xl px-3 py-2 text-xs font-mono text-content-primary focus:outline-none focus:border-gold"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = inputVal.trim();
+                        const hex = val.startsWith('#') ? val : `#${val}`;
+                        if (hexToRgb(hex)) {
+                          handleColorPick(hex);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-xl bg-gold text-black font-mono text-xs font-bold shadow transition-colors active:scale-95"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
 
-                return (
-                  <div
-                    key={step.pct}
-                    onClick={() => handleColorSelect(step.hex)}
-                    className={`group px-3 py-1.5 rounded-xl flex items-center justify-between font-mono text-xs cursor-pointer transition-all ${
-                      isSelected
-                        ? 'ring-2 ring-gold font-extrabold shadow-lg scale-[1.02] z-10'
-                        : 'hover:scale-[1.01] border border-transparent hover:border-border-strong'
-                    }`}
-                    style={{
-                      backgroundColor: step.hex,
-                      color: isDarkStep ? '#FFFFFF' : '#000000',
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="tracking-tight font-bold">{step.hex}</span>
-                      {step.isBase && (
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-gold text-black font-extrabold uppercase">
-                          Base
-                        </span>
+                {/* Pantone-Inspired Chromatic Matrix Field */}
+                <div className="space-y-2 pt-2 border-t border-border-subtle">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-content-muted">
+                    <span className="font-bold text-content-primary flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5 text-rose-500" />
+                      PANTONE CHROMATIC FIELD
+                    </span>
+                    <span>7 Formulas</span>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {MATRIX_SWATCHES.map((sw) => {
+                      const isSel = sw.hex.toLowerCase() === currentHex.toLowerCase();
+                      return (
+                        <button
+                          key={sw.name}
+                          type="button"
+                          onClick={() => handleColorPick(sw.hex)}
+                          className={`h-9 rounded-xl transition-all flex flex-col justify-end p-1 text-[8px] font-mono ${
+                            isSel ? 'ring-2 ring-gold scale-105 shadow-md' : 'hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: sw.hex }}
+                          title={`${sw.name} • ${sw.hex} (${sw.note})`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Panel: Massive Typography & Dual Sliders */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="flex flex-col items-center justify-center text-center py-4 space-y-2">
+                  <span className="text-xs font-mono uppercase tracking-widest text-gold font-bold">
+                    Target: {currentScope} • {currentProperty}
+                  </span>
+                  <h2 className="text-6xl sm:text-7xl font-display font-extrabold tracking-tight select-all">
+                    {currentHex.toLowerCase()}
+                  </h2>
+                  <div className="space-y-0.5 font-mono text-sm text-content-secondary">
+                    <p>rgb({rgb.r}, {rgb.g}, {rgb.b})</p>
+                    <p>hsl({hsl.h}, {hsl.s}%, {hsl.l}%)</p>
+                  </div>
+
+                  {/* WCAG 2.1 Contrast Telemetry Badges */}
+                  <div className="flex items-center gap-3 pt-2 text-xs font-mono font-semibold">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-card border border-border-subtle shadow-sm">
+                      <span className="text-content-muted">Body text</span>
+                      <span className="font-bold text-content-primary">{blackContrast}:1</span>
+                      {blackContrast >= 4.5 ? (
+                        <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
                       )}
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] opacity-80">{step.pct}%</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(step.hex);
-                        }}
-                        className="p-1 rounded-lg hover:bg-black/20 transition-colors"
-                        title="Copy Hex"
-                      >
-                        {copiedHex === step.hex ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
-                        )}
-                      </button>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-card border border-border-subtle shadow-sm">
+                      <span className="text-content-muted">Button text</span>
+                      <span className="font-bold text-content-primary">{whiteContrast}:1</span>
+                      {whiteContrast >= 4.5 ? (
+                        <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+
+                {/* Precision Sliders */}
+                <div className="bg-surface-elevated/70 border border-border-subtle rounded-3xl p-5 shadow-xl space-y-4 backdrop-blur-xl font-mono text-xs">
+                  {/* RGB Channels */}
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    {(['r', 'g', 'b'] as const).map((ch) => (
+                      <div key={ch} className="space-y-1">
+                        <span className="font-bold uppercase text-content-secondary">{ch}</span>
+                        <span className="block text-content-muted">{rgb[ch]}</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="255"
+                          value={rgb[ch]}
+                          onChange={(e) => {
+                            const newRgb = { ...rgb, [ch]: Number(e.target.value) };
+                            const hex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
+                            handleColorPick(hex);
+                          }}
+                          className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* HSL Channels */}
+                  <div className="grid grid-cols-3 gap-3 text-center pt-2 border-t border-border-subtle">
+                    <div className="space-y-1">
+                      <span className="font-bold text-content-secondary">H</span>
+                      <span className="block text-content-muted">{hsl.h}°</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="360"
+                        value={hsl.h}
+                        onChange={(e) => {
+                          const newRgb = hslToRgb(Number(e.target.value), hsl.s, hsl.l);
+                          handleColorPick(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+                        }}
+                        className="w-full cursor-pointer h-2 rounded-lg appearance-none"
+                        style={{
+                          background:
+                            'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-bold text-content-secondary">S</span>
+                      <span className="block text-content-muted">{hsl.s}%</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={hsl.s}
+                        onChange={(e) => {
+                          const newRgb = hslToRgb(hsl.h, Number(e.target.value), hsl.l);
+                          handleColorPick(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+                        }}
+                        className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-bold text-content-secondary">L</span>
+                      <span className="block text-content-muted">{hsl.l}%</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={hsl.l}
+                        onChange={(e) => {
+                          const newRgb = hslToRgb(hsl.h, hsl.s, Number(e.target.value));
+                          handleColorPick(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+                        }}
+                        className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Panel: 21-Shades Ladder */}
+              <div className="lg:col-span-3 space-y-1.5 bg-surface-elevated/40 border border-border-subtle p-3 rounded-3xl backdrop-blur-xl">
+                <div className="flex items-center justify-between text-[11px] font-mono text-content-muted px-2 pb-1 border-b border-border-subtle">
+                  <span>21 SHADES LADDER</span>
+                  <span>100% → 0%</span>
+                </div>
+                <div className="space-y-1 max-h-[520px] overflow-y-auto no-scrollbar pr-0.5">
+                  {tintShadeLadder.map((step) => {
+                    const stepRgb = hexToRgb(step.hex) || { r: 0, g: 0, b: 0 };
+                    const isDark = getLuminance(stepRgb.r, stepRgb.g, stepRgb.b) < 0.45;
+                    const isSel = step.hex.toLowerCase() === currentHex.toLowerCase();
+
+                    return (
+                      <div
+                        key={step.pct}
+                        onClick={() => handleColorPick(step.hex)}
+                        className={`group px-3 py-1.5 rounded-xl flex items-center justify-between font-mono text-xs cursor-pointer transition-all ${
+                          isSel ? 'ring-2 ring-gold font-extrabold shadow-lg scale-[1.02] z-10' : 'hover:scale-[1.01]'
+                        }`}
+                        style={{
+                          backgroundColor: step.hex,
+                          color: isDark ? '#FFFFFF' : '#000000',
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="tracking-tight font-bold">{step.hex}</span>
+                          {step.isBase && (
+                            <span className="text-[9px] px-1 py-0.2 rounded bg-gold text-black font-extrabold uppercase">
+                              Base
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] opacity-80">{step.pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* =========================================================================
-          ONE-CLICK PRESET THEMES & GEOMETRY MODULATORS
-      ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: 6 Master Style Presets */}
-        <div className="p-6 rounded-3xl border border-border-subtle bg-surface-card/80 backdrop-blur-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display font-bold text-base text-content-primary flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-gold" />
-              Master Style Presets (1-Click Switch)
-            </h3>
-            <span className="text-[10px] font-mono text-content-muted">6 Signature Systems</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {SUPER_THEME_PRESETS.map((preset) => {
-              return (
+          {/* Preset Palettes 1-Click Switch */}
+          <div className="p-6 rounded-3xl border border-border-subtle bg-surface-card space-y-3">
+            <span className="text-xs font-mono text-content-muted uppercase tracking-wider block font-bold">
+              ORIGINAL SIGNATURE PRESET PALETTES:
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+              {Object.entries(GOD_MODE_PRESETS).map(([name, colors]) => (
                 <button
-                  key={preset.name}
+                  key={name}
                   type="button"
                   onClick={() => {
                     soundFx.playChime();
-                    applyPreset(preset.name);
-                    setCurrentHex(preset.tokens.accent || '#D3A625');
-                    setInputVal(preset.tokens.accent || '#D3A625');
-                    setStatusMessage(`Applied preset: ${preset.name}`);
+                    const updated = JSON.parse(JSON.stringify(themeModel)) as GodModeThemeModel;
+                    Object.assign(updated.rules.global.all, colors);
+                    setThemeModel(updated);
+                    setCurrentHex(colors.accent);
+                    themeSyncService.saveTheme(updated);
+                    setStatusMessage(`Applied ${name} palette globally`);
                     setTimeout(() => setStatusMessage(null), 2500);
                   }}
-                  className="p-3.5 rounded-2xl border border-border-subtle bg-surface-elevated hover:border-gold/50 text-left transition-all active:scale-95 space-y-2 group shadow-sm"
+                  className="p-3 rounded-2xl bg-surface-elevated hover:bg-surface-elevated/80 border border-border-subtle text-left transition-all active:scale-95 space-y-2 group shadow-sm"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-content-primary group-hover:text-gold transition-colors">
-                      {preset.name}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <span
-                        className="w-3 h-3 rounded-full border border-white/20"
-                        style={{ backgroundColor: preset.tokens.canvas }}
-                      />
-                      <span
-                        className="w-3 h-3 rounded-full border border-white/20"
-                        style={{ backgroundColor: preset.tokens.accent }}
-                      />
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: colors.background }} />
+                    <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: colors.card }} />
+                    <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: colors.accent }} />
                   </div>
-                  <p className="text-[11px] text-content-muted line-clamp-2 leading-relaxed">
-                    {preset.description}
-                  </p>
+                  <span className="text-xs font-mono font-bold block truncate text-content-primary group-hover:text-gold">
+                    {name}
+                  </span>
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Right: Geometry & Typography Sliders */}
-        <div className="p-6 rounded-3xl border border-border-subtle bg-surface-card/80 backdrop-blur-xl space-y-5">
-          <h3 className="font-display font-bold text-base text-content-primary flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-gold" />
-            Geometry, Radius & Layout Density
-          </h3>
+      {/* =========================================================================
+          STUDIO 2: 📐 COMPOSITION STUDIO (LAYOUTS, GRIDS & RESPONSIVE SPACING)
+      ========================================================================= */}
+      {activeStudio === 'composition' && (
+        <div className="p-6 sm:p-8 rounded-3xl border border-border-subtle bg-surface-card space-y-6 animate-fade-in">
+          <div className="max-w-2xl space-y-1">
+            <h3 className="font-display font-bold text-xl text-content-primary flex items-center gap-2">
+              <Layout className="w-5 h-5 text-gold" />
+              Composition, Grid Columns & Responsive Constraints
+            </h3>
+            <p className="text-xs text-content-secondary">
+              Configure layout columns, maximum canvas boundaries, card spacing, and mobile stacking hierarchy.
+            </p>
+          </div>
 
-          <div className="space-y-4 font-mono text-xs">
-            {/* Radius Slider */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-content-muted">
-                <span>Corner Radius (Geometry)</span>
-                <span className="text-content-primary font-bold">{currentRadius}px</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            {/* Grid Columns */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex justify-between">
+                <span className="text-content-muted">Grid Column System</span>
+                <span className="font-bold text-gold">{gridColumns} Cols</span>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="32"
-                value={currentRadius}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setCurrentRadius(val);
-                  setGlobalToken('radius', val);
-                  document.documentElement.style.setProperty('--theme-radius', `${val}px`);
-                }}
-                className="w-full accent-gold cursor-pointer h-1.5 bg-surface-elevated rounded-lg appearance-none"
-              />
-              <div className="flex justify-between text-[10px] text-content-muted">
-                <span>0px (Sharp)</span>
-                <span>16px (Apple Glass)</span>
-                <span>32px (Full Pill)</span>
-              </div>
-            </div>
-
-            {/* Density Slider */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-content-muted">
-                <span>Layout Spacing & Density</span>
-                <span className="text-content-primary font-bold">{currentDensity}%</span>
-              </div>
-              <input
-                type="range"
-                min="70"
-                max="130"
-                value={currentDensity}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setCurrentDensity(val);
-                  setGlobalToken('density', val);
-                  document.documentElement.style.setProperty('--theme-density', (val / 100).toString());
-                }}
-                className="w-full accent-gold cursor-pointer h-1.5 bg-surface-elevated rounded-lg appearance-none"
-              />
-              <div className="flex justify-between text-[10px] text-content-muted">
-                <span>70% (Ultra Compact)</span>
-                <span>100% (Balanced)</span>
-                <span>130% (Spacious)</span>
-              </div>
-            </div>
-
-            {/* Typography Quick Switcher */}
-            <div className="space-y-1.5 pt-2 border-t border-border-subtle">
-              <span className="text-content-muted block">Primary Typography Pair</span>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { name: 'Space Grotesk + Serif', font: 'Space Grotesk, sans-serif', head: 'Georgia, serif' },
-                  { name: 'SF Pro + Display', font: 'Inter, system-ui, sans-serif', head: 'SF Pro Display, sans-serif' },
-                  { name: 'Dark Academia Papyrus', font: 'Cormorant Garamond, serif', head: 'Cinzel, serif' },
-                  { name: 'Cyber Monospace', font: 'JetBrains Mono, monospace', head: 'Space Grotesk, sans-serif' },
-                ].map((item) => (
+              <div className="grid grid-cols-3 gap-2">
+                {[6, 8, 12, 16].map((col) => (
                   <button
-                    key={item.name}
+                    key={col}
+                    type="button"
+                    onClick={() => setGridColumns(col)}
+                    className={`py-2 rounded-xl text-center border font-bold transition-all ${
+                      gridColumns === col ? 'bg-gold text-black border-gold shadow' : 'bg-surface-card border-border-subtle'
+                    }`}
+                  >
+                    {col} Col
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Container Max Width */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex justify-between">
+                <span className="text-content-muted">Max Canvas Boundary</span>
+                <span className="font-bold text-gold">{containerMaxWidth}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {['1120px', '1280px', '1440px', '1680px'].map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => setContainerMaxWidth(w)}
+                    className={`py-2 rounded-xl text-center border font-bold transition-all ${
+                      containerMaxWidth === w ? 'bg-gold text-black border-gold shadow' : 'bg-surface-card border-border-subtle'
+                    }`}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Section Padding */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex justify-between">
+                <span className="text-content-muted">Section Insets (Padding)</span>
+                <span className="font-bold text-gold">{layoutPadding}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {['16px', '24px', '32px', '40px', '48px', '64px'].map((p) => (
+                  <button
+                    key={p}
                     type="button"
                     onClick={() => {
-                      soundFx.playClick();
-                      setSelectedFont(item.font);
-                      setSelectedHeadingFont(item.head);
-                      setGlobalToken('font', item.font);
-                      setGlobalToken('headingFont', item.head);
-                      document.documentElement.style.setProperty('--font-primary', item.font);
-                      document.documentElement.style.setProperty('--font-display', item.head);
+                      setLayoutPadding(p);
+                      applyPropertyValue('space', p);
                     }}
-                    className="p-2 rounded-xl bg-surface-elevated hover:bg-surface-elevated/80 border border-border-subtle text-left text-[11px] text-content-primary transition-all active:scale-95"
+                    className={`py-2 rounded-xl text-center border font-bold transition-all ${
+                      layoutPadding === p ? 'bg-gold text-black border-gold shadow' : 'bg-surface-card border-border-subtle'
+                    }`}
                   >
-                    {item.name}
+                    {p}
                   </button>
                 ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* =========================================================================
+          STUDIO 3: ✨ MOTION STUDIO (SPRING PHYSICS, TRANSITIONS & 3D)
+      ========================================================================= */}
+      {activeStudio === 'motion' && (
+        <div className="p-6 sm:p-8 rounded-3xl border border-border-subtle bg-surface-card space-y-6 animate-fade-in">
+          <div className="max-w-2xl space-y-1">
+            <h3 className="font-display font-bold text-xl text-content-primary flex items-center gap-2">
+              <Zap className="w-5 h-5 text-gold" />
+              Emil Kowalski Motion Physics & Interaction Standards
+            </h3>
+            <p className="text-xs text-content-secondary">
+              Fluid spring physics, targeted active button press feedback, and 60fps GPU acceleration.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+            {/* Spring Stiffness */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex justify-between">
+                <span className="text-content-muted">Spring Stiffness</span>
+                <span className="font-bold text-gold">{motionStiffness}</span>
+              </div>
+              <input
+                type="range"
+                min="100"
+                max="600"
+                value={motionStiffness}
+                onChange={(e) => setMotionStiffness(Number(e.target.value))}
+                className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
+              />
+              <span className="text-[10px] text-content-muted block">
+                Controls natural return force on sheets, drawers and dialog dismissals.
+              </span>
+            </div>
+
+            {/* Spring Damping */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex justify-between">
+                <span className="text-content-muted">Spring Damping Ratio</span>
+                <span className="font-bold text-gold">{motionDamping}</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="60"
+                value={motionDamping}
+                onChange={(e) => setMotionDamping(Number(e.target.value))}
+                className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
+              />
+              <span className="text-[10px] text-content-muted block">
+                Higher damping eliminates oscillations for Raycast/Spotlight instantaneous feel.
+              </span>
+            </div>
+          </div>
+
+          {/* Tactile & Reduced Motion Toggles */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="p-4 rounded-2xl bg-surface-elevated border border-border-subtle flex items-center justify-between cursor-pointer">
+              <div className="space-y-0.5">
+                <span className="text-xs font-mono font-bold block text-content-primary">
+                  Selective Tactile Press (transform: scale 0.98)
+                </span>
+                <span className="text-[11px] text-content-muted block">
+                  Only applied to interactive buttons, preserving component transforms.
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={tactilePress}
+                onChange={(e) => setTactilePress(e.target.checked)}
+                className="rounded accent-gold w-4 h-4 cursor-pointer"
+              />
+            </label>
+
+            <label className="p-4 rounded-2xl bg-surface-elevated border border-border-subtle flex items-center justify-between cursor-pointer">
+              <div className="space-y-0.5">
+                <span className="text-xs font-mono font-bold block text-content-primary">
+                  Reduced Motion Mode (prefers-reduced-motion)
+                </span>
+                <span className="text-[11px] text-content-muted block">
+                  Replaces movement with subtle crossfades for accessibility.
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={reducedMotion}
+                onChange={(e) => setReducedMotion(e.target.checked)}
+                className="rounded accent-gold w-4 h-4 cursor-pointer"
+              />
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STUDIO 4: 📝 CONTENT STUDIO (PAGE TEXT, HERO TITLES & METADATA)
+      ========================================================================= */}
+      {activeStudio === 'content' && (
+        <div className="p-6 sm:p-8 rounded-3xl border border-border-subtle bg-surface-card space-y-6 animate-fade-in">
+          <div className="max-w-2xl space-y-1">
+            <h3 className="font-display font-bold text-xl text-content-primary flex items-center gap-2">
+              <Type className="w-5 h-5 text-gold" />
+              Content Studio — Headline & Environment Customizer
+            </h3>
+            <p className="text-xs text-content-secondary">
+              Update visible copy, hero headlines, and environment tags across the three connected environments.
+            </p>
+          </div>
+
+          <div className="space-y-4 max-w-2xl font-mono text-xs">
+            <div className="space-y-1.5">
+              <label className="text-content-muted block font-bold">1. Dashboard Hero Headline</label>
+              <input
+                type="text"
+                value={contentTitles.dashboard}
+                onChange={(e) => setContentTitles({ ...contentTitles, dashboard: e.target.value })}
+                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3.5 py-2.5 text-content-primary focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-content-muted block font-bold">2. Studies & Academics Headline</label>
+              <input
+                type="text"
+                value={contentTitles.studies}
+                onChange={(e) => setContentTitles({ ...contentTitles, studies: e.target.value })}
+                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3.5 py-2.5 text-content-primary focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-content-muted block font-bold">3. Public Portfolio Headline</label>
+              <input
+                type="text"
+                value={contentTitles.portfolio}
+                onChange={(e) => setContentTitles({ ...contentTitles, portfolio: e.target.value })}
+                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3.5 py-2.5 text-content-primary focus:outline-none focus:border-gold"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                soundFx.playChime();
+                setStatusMessage('Saved content headline overrides to local session');
+                setTimeout(() => setStatusMessage(null), 2500);
+              }}
+              className="px-4 py-2 rounded-xl bg-gold text-black font-bold font-mono transition-all active:scale-95 shadow"
+            >
+              Save Content Copy
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STUDIO 5: ⚙️ SYSTEM STUDIO (DASHBOARD WIDGETS & INTEGRATION STATUS)
+      ========================================================================= */}
+      {activeStudio === 'system' && (
+        <div className="p-6 sm:p-8 rounded-3xl border border-border-subtle bg-surface-card space-y-6 animate-fade-in">
+          <div className="max-w-2xl space-y-1">
+            <h3 className="font-display font-bold text-xl text-content-primary flex items-center gap-2">
+              <Settings className="w-5 h-5 text-gold" />
+              System Studio — Dashboard Modules & Integration Status
+            </h3>
+            <p className="text-xs text-content-secondary">
+              Toggle live dashboard widgets, verify device sessions, and audit Supabase database connections.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Widget Visibility Toggles */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3 font-mono text-xs">
+              <span className="font-bold text-content-primary block uppercase">
+                Active Dashboard Widgets
+              </span>
+              {[
+                { name: 'Attendance & Clock-In Timer', active: true },
+                { name: 'Gryffindor Quest Board & Tasks', active: true },
+                { name: 'Focus Mode Pomodoro & Sound Engine', active: true },
+                { name: 'Academics & Study Course Manager', active: true },
+                { name: 'Financial Runway & Expense Ledger', active: true },
+                { name: 'Systems Telemetry HUD (Konami Ready)', active: true },
+              ].map((w) => (
+                <div key={w.name} className="flex items-center justify-between p-2 rounded-xl bg-surface-card">
+                  <span className="text-content-secondary">{w.name}</span>
+                  <span className="text-emerald-400 font-bold">Enabled</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Device & Session Telemetry */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3 font-mono text-xs">
+              <span className="font-bold text-content-primary block uppercase">
+                Connected Device Cluster
+              </span>
+              {[
+                { device: 'MacBook Pro 16" M3 Max', os: 'macOS 15 Sequoia', status: 'Online', icon: Laptop },
+                { device: 'iPhone 16 Pro Max', os: 'iOS 18.2', status: 'Synced', icon: Smartphone },
+                { device: 'HP OMEN 30L Workstation', os: 'Windows 11 Pro', status: 'Active (Current)', icon: Monitor },
+              ].map((d) => {
+                const Icon = d.icon;
+                return (
+                  <div key={d.device} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-card">
+                    <div className="flex items-center gap-2.5">
+                      <Icon className="w-4 h-4 text-gold" />
+                      <div>
+                        <span className="font-bold text-content-primary block">{d.device}</span>
+                        <span className="text-[10px] text-content-muted">{d.os}</span>
+                      </div>
+                    </div>
+                    <span className="text-emerald-400 font-bold">{d.status}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STUDIO 6: 🚀 PREVIEW & RELEASE STUDIO (DEVICE SIMULATOR & VERSIONING)
+      ========================================================================= */}
+      {activeStudio === 'preview-release' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Viewport Simulator Control Bar */}
+          <div className="p-4 rounded-2xl bg-surface-card border border-border-subtle flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-content-muted font-bold">VIEWPORT:</span>
+              {[
+                { id: 'iphone', label: 'iPhone (390px)', icon: Smartphone },
+                { id: 'tablet', label: 'iPad (768px)', icon: Tablet },
+                { id: 'laptop', label: 'MacBook (1280px)', icon: Laptop },
+                { id: 'desktop', label: 'Desktop (1920px)', icon: Monitor },
+              ].map((v) => {
+                const Icon = v.icon;
+                const isSel = previewViewport === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setPreviewViewport(v.id as any)}
+                    className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-bold transition-all ${
+                      isSel ? 'bg-gold text-black shadow-sm' : 'bg-surface-elevated text-content-muted hover:text-content-primary'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{v.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Version Snapshot Saver */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={versionNameInput}
+                onChange={(e) => setVersionNameInput(e.target.value)}
+                placeholder="Name this version snapshot..."
+                className="bg-surface-elevated border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-content-primary focus:outline-none focus:border-gold w-56"
+              />
+              <button
+                type="button"
+                onClick={handleSaveNamedVersion}
+                className="px-3.5 py-1.5 rounded-lg bg-gold text-black font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Snapshot</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Live Preview Frame */}
+          <div className="flex justify-center p-6 rounded-3xl bg-black/40 border border-border-subtle overflow-x-auto">
+            <div
+              className="transition-all duration-300 rounded-3xl border border-white/20 shadow-2xl p-6 space-y-6"
+              style={{
+                width:
+                  previewViewport === 'iphone'
+                    ? '390px'
+                    : previewViewport === 'tablet'
+                    ? '768px'
+                    : previewViewport === 'laptop'
+                    ? '1024px'
+                    : '100%',
+                backgroundColor: themeModel.rules.global.all?.background || '#0B0B0C',
+                color: themeModel.rules.global.all?.text || '#F5F0E6',
+              }}
+            >
+              {/* Sample Header inside Simulated Preview */}
+              <div
+                data-theme-component="nav"
+                data-theme-id="sample-preview-nav"
+                className="p-4 rounded-2xl flex items-center justify-between border border-white/10"
+                style={{
+                  backgroundColor: themeModel.rules.global.all?.surface || '#141416',
+                }}
+              >
+                <span className="font-display font-bold text-sm tracking-tight">
+                  GRYFFINDOR • COMMON ROOM
+                </span>
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                  style={{
+                    backgroundColor: themeModel.rules.global.all?.accent || '#D3A625',
+                    color: blackContrast > whiteContrast ? '#000000' : '#FFFFFF',
+                  }}
+                >
+                  LIVE PREVIEW
+                </span>
+              </div>
+
+              {/* Sample Attendance & Tasks Card */}
+              <div
+                data-theme-component="card"
+                data-theme-id="attendance-card-specimen"
+                className="p-5 rounded-2xl border border-white/10 space-y-4 shadow-lg"
+                style={{
+                  backgroundColor: themeModel.rules.global.all?.card || '#1C1C1F',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <h4 className="font-display font-bold text-base">
+                      Today's Work Session
+                    </h4>
+                    <span className="text-xs text-content-muted block">
+                      Logged hours: 7h 45m • Target: 8h 00m
+                    </span>
+                  </div>
+                  <button
+                    data-theme-component="button"
+                    data-theme-id="clock-in-specimen"
+                    type="button"
+                    className="px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all active:scale-95 shadow"
+                    style={{
+                      backgroundColor: themeModel.rules.global.all?.accent || '#D3A625',
+                      color: blackContrast > whiteContrast ? '#000000' : '#FFFFFF',
+                    }}
+                  >
+                    Clock In
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Saved Snapshots List & JSON Export */}
+          <div className="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs font-bold text-content-primary uppercase">
+                Saved Version History ({savedVersions.length} Snapshots)
+              </span>
+              <button
+                type="button"
+                onClick={handleExportJson}
+                className="px-3 py-1.5 rounded-xl bg-surface-elevated hover:bg-surface-elevated/80 border border-border-subtle text-xs font-mono font-bold flex items-center gap-1.5 transition-all"
+              >
+                <Download className="w-3.5 h-3.5 text-gold" />
+                <span>Export Theme JSON</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {savedVersions.map((v, i) => (
+                <div
+                  key={i}
+                  className="p-3.5 rounded-2xl bg-surface-elevated border border-border-subtle flex items-center justify-between gap-3 text-xs font-mono"
+                >
+                  <div className="truncate">
+                    <span className="font-bold text-content-primary block truncate">{v.name}</span>
+                    <span className="text-[10px] text-content-muted">{v.date}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRestoreVersion(i)}
+                    className="px-2.5 py-1 rounded-lg bg-gold/15 text-gold border border-gold/30 hover:bg-gold/25 font-bold transition-all"
+                  >
+                    Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -156,7 +156,11 @@ export const AttendancePage: React.FC = () => {
       </div>
 
       {/* CLOCK-IN / CLOCK-OUT LIVE CONTROL CARD */}
-      <div className="p-6 sm:p-8 rounded-3xl border border-border-strong bg-surface-card space-y-6 shadow-xl">
+      <div
+        data-theme-component="card"
+        data-theme-id="attendance-summary"
+        className="p-6 sm:p-8 rounded-3xl border border-border-strong bg-surface-card space-y-6 shadow-xl"
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -193,6 +197,8 @@ export const AttendancePage: React.FC = () => {
                 className="px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-elevated text-xs text-content-primary outline-none focus:border-burgundy-soft flex-1 sm:w-80"
               />
               <button
+                data-theme-component="button"
+                data-theme-id="attendance-clock-in"
                 onClick={handleClockIn}
                 className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors flex items-center gap-2 shadow-lg"
               >

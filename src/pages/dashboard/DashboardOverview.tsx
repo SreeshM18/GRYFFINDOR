@@ -87,7 +87,11 @@ export const DashboardOverview: React.FC = () => {
   return (
     <div className="space-y-10 max-w-7xl">
       {/* 01. EXECUTIVE PERSONALIZED GREETING & JARVIS MORNING BRIEFING */}
-      <div className="relative rounded-3xl border border-border-subtle bg-gradient-to-br from-surface-card via-surface-card to-surface-elevated/80 p-6 sm:p-8 overflow-hidden shadow-xl space-y-6">
+      <div
+        data-theme-component="card"
+        data-theme-id="executive-cockpit-card"
+        className="relative rounded-3xl border border-border-subtle bg-gradient-to-br from-surface-card via-surface-card to-surface-elevated/80 p-6 sm:p-8 overflow-hidden shadow-xl space-y-6"
+      >
         {/* Glow Accent */}
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-gold/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -113,6 +117,8 @@ export const DashboardOverview: React.FC = () => {
           <div className="flex items-center gap-3">
             {!activeClockIn ? (
               <button
+                data-theme-component="button"
+                data-theme-id="quick-clock-in-button"
                 onClick={handleQuickClockIn}
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg transition-colors active:scale-95"
               >

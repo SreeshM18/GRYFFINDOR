@@ -7,6 +7,7 @@ import { FudaliMomentumWidget } from '../components/widgets/FudaliMomentumWidget
 import { EyeballsBroadcastWidget } from '../components/widgets/EyeballsBroadcastWidget';
 import { UniversalColorLabWidget } from '../components/widgets/UniversalColorLabWidget';
 import { EmilCraftEngineWidget } from '../components/widgets/EmilCraftEngineWidget';
+import { SuperAdaptiveThemeStudio } from '../components/studio/SuperAdaptiveThemeStudio';
 import {
   Palette,
   Check,
@@ -25,7 +26,7 @@ import { Link } from 'react-router-dom';
 
 export const DesignStudioPage: React.FC = () => {
   const { currentDesign, setDesign, preset } = useDesignSystem();
-  const [activeTab, setActiveTab] = useState<'all' | 'emil-craft' | 'color-lab' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'adaptive-studio' | 'emil-craft' | 'color-lab' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 animate-fade-in">
@@ -177,7 +178,8 @@ export const DesignStudioPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-surface-card border border-border-subtle text-xs font-mono">
             {[
               { id: 'all', label: 'All Modules' },
-              { id: 'emil-craft', label: '✦ Emil Kowalski Craft' },
+              { id: 'adaptive-studio', label: '✦ Super Adaptive Studio' },
+              { id: 'emil-craft', label: 'Emil Kowalski Craft' },
               { id: 'color-lab', label: 'Universal Color Lab' },
               { id: 'marijana', label: 'Marijana Garden' },
               { id: 'aritro', label: 'Aritro Telemetry' },
@@ -201,6 +203,13 @@ export const DesignStudioPage: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* 00. SUPER ADAPTIVE THEME STUDIO (Global & Independent Element Customizer) */}
+        {(activeTab === 'all' || activeTab === 'adaptive-studio') && (
+          <div className="space-y-3">
+            <SuperAdaptiveThemeStudio />
+          </div>
+        )}
 
         {/* 0. EMIL KOWALSKI CRAFT & MOTION STANDARDS (github.com/emilkowalski/skills.git) */}
         {(activeTab === 'all' || activeTab === 'emil-craft') && (

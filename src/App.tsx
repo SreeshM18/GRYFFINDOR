@@ -24,6 +24,8 @@ import { SourcesDirectoryPage } from './pages/worlds/SourcesDirectoryPage';
 import { AtriumPage } from './pages/AtriumPage';
 import { DesignStudioPage } from './pages/DesignStudioPage';
 import { DesignSystemProvider } from './context/DesignSystemContext';
+import { SuperAdaptiveThemeProvider } from './context/SuperAdaptiveThemeContext';
+import { LiveDesignModeInspector } from './components/studio/LiveDesignModeInspector';
 
 // Private Work OS Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -184,6 +186,9 @@ export const AppContent: React.FC = () => {
         soundEnabled={soundEnabled}
         onToggleSound={toggleSound}
       />
+
+      {/* Live Website Designer Inspector HUD (Click-to-Edit Any Element) */}
+      <LiveDesignModeInspector />
     </div>
   );
 };
@@ -191,9 +196,11 @@ export const AppContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <DesignSystemProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <SuperAdaptiveThemeProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </SuperAdaptiveThemeProvider>
     </DesignSystemProvider>
   );
 };

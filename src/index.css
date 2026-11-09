@@ -212,6 +212,90 @@ button:not(:disabled):active,
   padding-bottom: env(safe-area-inset-bottom, 1rem);
 }
 
+/* =========================================================================
+   APPLE UI DESIGN & FLUID INTERFACES SYSTEM (WWDC 2018 / 2020 / 2026 HIG)
+   ========================================================================= */
+
+/* A. Translucent Materials & Depth (Apple Glass / Vibrancy) */
+.apple-glass {
+  background: rgba(20, 20, 22, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.15); /* Light catching the upper bevel */
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .apple-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* B. Apple Toolbar Chrome */
+.apple-toolbar {
+  background: rgba(26, 26, 30, 0.8);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* C. Apple Optical Typography (Negative Tracking on Headlines, Positive on Small) */
+.apple-display {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  font-optical-sizing: auto;
+}
+
+.apple-headline {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+}
+
+.apple-caption {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+  letter-spacing: 0.025em;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+}
+
+/* D. Apple Spring Transitions (Critically Damped 1.0 & Interruptible Physics) */
+.apple-spring {
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1), opacity 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.apple-spring-fast {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* E. Reduced Transparency & Reduced Motion Accessibility */
+@media (prefers-reduced-transparency: reduce) {
+  .apple-glass,
+  .apple-toolbar {
+    background: var(--bg-surface-card) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apple-spring,
+  .apple-spring-fast,
+  button:active,
+  [role="button"]:active {
+    transition: opacity 120ms ease !important;
+    transform: none !important;
+  }
+}
+
 /* Custom editorial scrollbar */
 ::-webkit-scrollbar {
   width: 5px;

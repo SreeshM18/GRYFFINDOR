@@ -17,10 +17,12 @@ import {
 } from 'lucide-react';
 
 export const EmilCraftEngineWidget: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'cheatsheet' | 'skills' | 'rules'>('cheatsheet');
+  const [activeTab, setActiveTab] = useState<'apple' | 'cheatsheet' | 'skills' | 'rules'>('apple');
   const [testCounter, setTestCounter] = useState(1284);
   const [tabularActive, setTabularActive] = useState(true);
   const [activeButtonFired, setActiveButtonFired] = useState(false);
+  const [appleSpringOpen, setAppleSpringOpen] = useState(true);
+  const [springBounce, setSpringBounce] = useState<number>(0); // 0 = critically damped (Apple HIG default)
 
   // Auto-increment test counter to show tabular vs non-tabular stability
   useEffect(() => {
@@ -79,6 +81,19 @@ export const EmilCraftEngineWidget: React.FC = () => {
           <button
             onClick={() => {
               soundFx.playClick();
+              setActiveTab('apple');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === 'apple'
+                ? 'bg-surface-card text-content-primary font-bold shadow-sm'
+                : 'text-content-muted hover:text-content-primary'
+            }`}
+          >
+            <span> Apple Design</span>
+          </button>
+          <button
+            onClick={() => {
+              soundFx.playClick();
               setActiveTab('cheatsheet');
             }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
@@ -117,6 +132,122 @@ export const EmilCraftEngineWidget: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* =========================================================================
+          TAB 0: APPLE UI DESIGN SYSTEM & WWDC FLUID INTERFACES (apple-design)
+      ========================================================================= */}
+      {activeTab === 'apple' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* 1. Apple Glass Translucency & Light Bevel */}
+            <div className="p-5 rounded-2xl apple-glass space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+                <span className="font-bold text-content-primary flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-gold" />
+                  Apple Glass Material
+                </span>
+                <span className="text-[10px] text-gold font-mono">blur(20px) sat(180%)</span>
+              </div>
+              <p className="text-xs text-content-secondary leading-relaxed">
+                Translucent functional layer that organizes content without stealing focus. Features a light-catching top bevel (<code className="font-mono text-[11px] text-content-primary">border-top: 1px solid rgba(255,255,255,0.15)</code>).
+              </p>
+              <div className="pt-2 p-3 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-content-muted">
+                <span className="text-white block font-bold">Vibrancy Hierarchy:</span>
+                Never stack light translucent surfaces on top of each other. Darker materials anchor structure; lighter surfaces direct focus.
+              </div>
+            </div>
+
+            {/* 2. Interruptible Springs (Apple HIG WWDC 2018) */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+                <span className="font-bold text-content-primary flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-blue-400" />
+                  Interruptible Springs
+                </span>
+                <span className="text-[10px] text-blue-400 font-mono">Damping 1.0 (Critical)</span>
+              </div>
+              <p className="text-xs text-content-secondary leading-relaxed">
+                Apple uses <strong>Damping Ratio + Response</strong> instead of fixed durations. Animations are always grabable and redirectable mid-flight from their current on-screen value.
+              </p>
+              <div className="pt-2 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setAppleSpringOpen(!appleSpringOpen);
+                  }}
+                  className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold transition-all active:scale-95 shadow"
+                >
+                  {appleSpringOpen ? 'Simulate Sheet Dismissal' : 'Simulate Spring Open'}
+                </button>
+                <div
+                  className={`p-3 rounded-xl border border-blue-500/30 bg-blue-500/10 text-xs font-mono transition-all duration-300 ${
+                    appleSpringOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-40'
+                  }`}
+                  style={{
+                    transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                >
+                  <span className="text-blue-300 font-bold block">Status: {appleSpringOpen ? 'Spring Settled' : 'Collapsed'}</span>
+                  <span className="text-[10px] text-content-muted">Response: 0.35s • Damping: 1.0</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Apple Optical Typography (WWDC 2020) */}
+            <div className="p-5 rounded-2xl bg-surface-elevated border border-border-subtle space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+                <span className="font-bold text-content-primary flex items-center gap-1.5">
+                  <Code2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Optical Typography
+                </span>
+                <span className="text-[10px] text-emerald-400 font-mono">Dynamic Tracking</span>
+              </div>
+              <p className="text-xs text-content-secondary leading-relaxed">
+                Apple type scales inversely with size. Large headlines receive negative tracking (<code className="text-emerald-400">-0.035em</code>); small captions receive positive tracking (<code className="text-emerald-400">+0.025em</code>).
+              </p>
+              <div className="pt-2 p-3 rounded-xl bg-surface-card border border-border-subtle space-y-1">
+                <h4 className="apple-display text-2xl font-bold text-content-primary">
+                  SREESH × MRITHULA
+                </h4>
+                <p className="apple-caption text-gold">
+                  GRYFFINDOR LIFE & WORK OPERATING SYSTEM
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* WWDC 2018 Fluid Interfaces 4 Core Human Needs */}
+          <div className="p-5 rounded-2xl bg-surface-card border border-border-subtle space-y-3">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+              <span className="font-mono text-xs font-bold text-content-primary uppercase">
+                Apple's 4 Human Needs for Fluid Interfaces (WWDC 2018)
+              </span>
+              <span className="text-[10px] font-mono text-gold">
+                Translated for Web & Antigravity
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle space-y-1">
+                <span className="font-bold text-blue-400 block">1. Predictability</span>
+                <p className="text-content-muted text-[11px]">Symmetric paths: if a modal enters from the right, it dismisses to the right. Never in-right, out-bottom.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle space-y-1">
+                <span className="font-bold text-emerald-400 block">2. Understanding</span>
+                <p className="text-content-muted text-[11px]">Origin anchoring: popovers scale from their trigger button (<code className="text-emerald-400">transform-origin</code>), making spatial relationships obvious.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle space-y-1">
+                <span className="font-bold text-amber-400 block">3. Achievement</span>
+                <p className="text-content-muted text-[11px]">Zero latency: respond on pointer-down, not touch-up. Kill every artificial debounce on input paths.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle space-y-1">
+                <span className="font-bold text-purple-400 block">4. Joy & Tactility</span>
+                <p className="text-content-muted text-[11px]">Momentum projection: flicks throw elements based on release velocity with exponential decay, not linear stops.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
           TAB 1: INTERACTIVE BEFORE vs AFTER CHEATSHEET

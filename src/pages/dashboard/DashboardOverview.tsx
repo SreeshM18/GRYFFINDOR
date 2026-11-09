@@ -20,6 +20,7 @@ import {
   Smartphone,
   Wifi,
   Lock,
+  CreditCard,
 } from 'lucide-react';
 import { workOs } from '../../services/workOsStorage';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
@@ -85,42 +86,131 @@ export const DashboardOverview: React.FC = () => {
 
   return (
     <div className="space-y-10 max-w-7xl">
-      {/* 01. EXECUTIVE PERSONALIZED GREETING */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-subtle pb-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-gold font-semibold">GRYFFINDOR • THE COMMON ROOM</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-elevated text-gold/80 border border-gold/30">
-              Executive Cockpit
-            </span>
+      {/* 01. EXECUTIVE PERSONALIZED GREETING & JARVIS MORNING BRIEFING */}
+      <div className="relative rounded-3xl border border-border-subtle bg-gradient-to-br from-surface-card via-surface-card to-surface-elevated/80 p-6 sm:p-8 overflow-hidden shadow-xl space-y-6">
+        {/* Glow Accent */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-gold/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-subtle pb-6 relative z-10">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono uppercase tracking-widest text-gold font-semibold">
+                GRYFFINDOR • THE COMMON ROOM
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-elevated text-gold/90 border border-gold/30">
+                JARVIS Executive Briefing
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary tracking-tight">
+              {getGreeting()}, {currentUser.name.split(' ')[0]}.
+            </h1>
+            <p className="text-xs sm:text-sm font-mono text-content-secondary">
+              Operational cockpit active. <span className="text-content-muted">({todayStr} • Bengaluru, IST • 24°C Clear)</span>
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-content-primary tracking-tight">
-            Welcome back, {currentUser.name.split(' ')[0]}.
-          </h1>
-          <p className="text-xs sm:text-sm font-mono text-gold/90">
-            Your Common Room awaits. <span className="text-content-muted">({todayStr} • Bengaluru, IST)</span>
-          </p>
+
+          {/* Quick Shift Clock In/Out Button */}
+          <div className="flex items-center gap-3">
+            {!activeClockIn ? (
+              <button
+                onClick={handleQuickClockIn}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg transition-colors active:scale-95"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Clock In (Start Workday)</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleQuickClockOut}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg transition-colors active:scale-95"
+              >
+                <Square className="w-4 h-4 fill-current" />
+                <span>Clock Out</span>
+              </button>
+            )}
+
+            <Link
+              to="/app/quests"
+              onClick={() => soundFx.playClick()}
+              className="px-4 py-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card border border-border-subtle text-content-primary font-mono text-xs font-semibold transition-all flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gold" />
+              <span>Quest Board</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Quick Shift Clock In/Out Button */}
-        <div className="flex items-center gap-3">
-          {!activeClockIn ? (
-            <button
-              onClick={handleQuickClockIn}
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg transition-colors"
-            >
-              <Play className="w-4 h-4 fill-current" />
-              <span>Clock In (Start Workday)</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleQuickClockOut}
-              className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg transition-colors"
-            >
-              <Square className="w-4 h-4 fill-current" />
-              <span>Clock Out</span>
-            </button>
-          )}
+        {/* Real-Data Intelligence Grid (Deterministic JARVIS Briefing) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10 pt-1">
+          {/* 1. Today's Attendance & Shift Status */}
+          <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-border-subtle space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+              <span className="flex items-center gap-1 text-content-secondary">
+                <Clock className="w-3.5 h-3.5 text-burgundy-soft" />
+                Work Attendance
+              </span>
+              <span className={activeClockIn ? 'text-emerald-400 font-bold' : 'text-amber-400'}>
+                {activeClockIn ? '● In Progress' : '○ Off-Duty'}
+              </span>
+            </div>
+            <div className="text-xl font-mono font-bold text-content-primary">
+              {formattedHours}
+            </div>
+            <p className="text-[10px] font-mono text-content-muted">
+              {activeClockIn ? 'Live shift recorded to Ledger' : 'Tap Clock In above to begin'}
+            </p>
+          </div>
+
+          {/* 2. Quests & Collaboration */}
+          <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-border-subtle space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+              <span className="flex items-center gap-1 text-content-secondary">
+                <CheckSquare className="w-3.5 h-3.5 text-gold" />
+                Pending Quests
+              </span>
+              <span className="text-gold font-bold">The Great Hall</span>
+            </div>
+            <div className="text-xl font-display font-bold text-content-primary">
+              {userTasks.length} <span className="text-xs font-mono text-content-muted">assigned to you</span>
+            </div>
+            <p className="text-[10px] font-mono text-content-muted">
+              {activeTasks.length} total shared tasks across Common Room
+            </p>
+          </div>
+
+          {/* 3. College Academics S7 */}
+          <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-border-subtle space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+              <span className="flex items-center gap-1 text-content-secondary">
+                <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
+                Academics (S7)
+              </span>
+              <span className="text-blue-400 font-bold">88.5% Attd.</span>
+            </div>
+            <div className="text-xl font-display font-bold text-content-primary truncate">
+              Distributed Systems
+            </div>
+            <p className="text-[10px] font-mono text-content-muted">
+              Next Semester exam in 14 days • 4 Credits
+            </p>
+          </div>
+
+          {/* 4. Vault & Studio Target */}
+          <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-border-subtle space-y-1">
+            <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+              <span className="flex items-center gap-1 text-content-secondary">
+                <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                The Vault & Milestones
+              </span>
+              <span className="text-emerald-400 font-bold">Healthy</span>
+            </div>
+            <div className="text-xl font-mono font-bold text-content-primary">
+              ₹1,45,000 <span className="text-xs font-mono text-content-muted">Studio Net</span>
+            </div>
+            <p className="text-[10px] font-mono text-content-muted">
+              3 Client deliverables on schedule
+            </p>
+          </div>
         </div>
       </div>
 

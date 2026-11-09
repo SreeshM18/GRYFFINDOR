@@ -1,23 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { soundFx } from '../ui/AudioSynthesizer';
-import { Eye, Camera, Palette, Sparkles, RefreshCw, Terminal, Check } from 'lucide-react';
+import { Eye, Camera, Palette, Sparkles, RefreshCw, Terminal, Check, Copy, Pipette, Sliders } from 'lucide-react';
 
-interface Swatch {
-  id: string;
-  name: string;
-  pantone: string;
-  hex: string;
-  rgb: string;
+// Mathematical Color Helpers & Honeycomb generator
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  let cleaned = hex.replace('#', '').trim();
+  if (cleaned.length === 3) cleaned = cleaned.split('').map((c) => c + c).join('');
+  const num = parseInt(cleaned, 16);
+  if (isNaN(num)) return { r: 102, g: 204, b: 255 };
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255,
+  };
 }
 
-const PANTONE_SWATCHES: Swatch[] = [
-  { id: 'scarlet', name: 'Flame Scarlet', pantone: '18-1662 TCX', hex: '#E11D48', rgb: '225, 29, 72' },
-  { id: 'yellow', name: 'Illuminating', pantone: '13-0647 TCX', hex: '#F59E0B', rgb: '245, 158, 11' },
-  { id: 'lime', name: 'Sharp Lime', pantone: '14-0452 TCX', hex: '#84CC16', rgb: '132, 204, 22' },
-  { id: 'cyan', name: 'Biscay Green', pantone: '15-5718 TCX', hex: '#06B6D4', rgb: '6, 182, 212' },
-  { id: 'lavender', name: 'Very Peri', pantone: '17-3938 TCX', hex: '#8B5CF6', rgb: '139, 92, 246' },
-  { id: 'charcoal', name: 'Jet Black', pantone: '19-0303 TCX', hex: '#374151', rgb: '55, 65, 81' },
-];
+function rgbToHex(r: number, g: number, b: number): string {
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  return `#${clamp(r).toString(16).padStart(2, '0')}${clamp(g).toString(16).padStart(2, '0')}${clamp(b).toString(16).padStart(2, '0')}`;
+}
+
+function hslToRgb(h: number, s: number, l: number) {
+  h /= 360;
+  s /= 100;
+  l /= 100;
+  let r: number, g: number, b: number;
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const f = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = f(p, q, h + 1 / 3);
+    g = f(p, q, h);
+    b = f(p, q, h - 1 / 3);
+  }
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+
+function generateMiniHoneycomb() {
+  const nodes: { hex: string; x: number; y: number }[] = [];
+  const radius = 3;
+  const size = 11;
+  for (let q = -radius; q <= radius; q++) {
+    const r1 = Math.max(-radius, -q - radius);
+    const r2 = Math.min(radius, -q + radius);
+    for (let r = r1; r <= r2; r++) {
+      const x = size * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
+      const y = size * ((3 / 2) * r);
+      const dist = Math.sqrt(q * q + r * r + q * r);
+      if (dist === 0) {
+        nodes.push({ hex: '#FFFFFF', x, y });
+      } else {
+        const angle = (Math.atan2(y, x) * 180) / Math.PI;
+        const normAngle = (angle + 360) % 360;
+        const sat = Math.min(100, Math.round((dist / radius) * 100));
+        const light = Math.max(30, Math.min(75, Math.round(85 - (dist / radius) * 40)));
+        const rgb = hslToRgb(normAngle, sat, light);
+        nodes.push({ hex: rgbToHex(rgb.r, rgb.g, rgb.b), x, y });
+      }
+    }
+  }
+  return nodes;
+}
 
 const CAMERA_ROLL_PHOTOS = [
   {
@@ -51,8 +103,67 @@ const CAMERA_ROLL_PHOTOS = [
 ];
 
 export const MarijanaGardenWidget: React.FC = () => {
-  // 1. Swatch State
-  const [activeSwatch, setActiveSwatch] = useState<Swatch>(PANTONE_SWATCHES[0]);
+  // 1. Honeycomb Color & Shade State (Default from screenshot #66ccff)
+  const [currentHex, setCurrentHex] = useState<string>(() => {
+    return localStorage.getItem('sm_custom_accent_gold') || '#66ccff';
+  });
+  const [inputVal, setInputVal] = useState<string>(currentHex);
+  const [appliedNotice, setAppliedNotice] = useState<string | null>(null);
+
+  const rgb = hexToRgb(currentHex);
+  const miniHoneycomb = useMemo(() => generateMiniHoneycomb(), []);
+
+  // 21-Step Tint & Shade Ladder (100% to 0% in 5% increments)
+  const shadeLadder = useMemo(() => {
+    const steps = [];
+    for (let pct = 100; pct > 70; pct -= 5) {
+      const factor = (pct - 70) / 30;
+      const r = Math.round(rgb.r + (255 - rgb.r) * factor);
+      const g = Math.round(rgb.g + (255 - rgb.g) * factor);
+      const b = Math.round(rgb.b + (255 - rgb.b) * factor);
+      steps.push({ pct, hex: rgbToHex(r, g, b) });
+    }
+    steps.push({ pct: 70, hex: currentHex });
+    for (let pct = 65; pct >= 0; pct -= 5) {
+      const factor = pct / 70;
+      const r = Math.round(rgb.r * factor);
+      const g = Math.round(rgb.g * factor);
+      const b = Math.round(rgb.b * factor);
+      steps.push({ pct, hex: rgbToHex(r, g, b) });
+    }
+    return steps;
+  }, [rgb, currentHex]);
+
+  // Relative luminance for contrast
+  const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+  const isDark = luminance < 0.5;
+
+  const handleApplyAccent = (hexToApply: string = currentHex) => {
+    soundFx.playChime();
+    document.documentElement.style.setProperty('--accent-gold', hexToApply);
+    document.documentElement.style.setProperty('--theme-accent', hexToApply);
+    localStorage.setItem('sm_custom_accent_gold', hexToApply);
+    setAppliedNotice(`Applied ${hexToApply} as Website Accent`);
+    setTimeout(() => setAppliedNotice(null), 2000);
+  };
+
+  const handleApplyCanvas = (hexToApply: string = currentHex) => {
+    soundFx.playChime();
+    document.documentElement.style.setProperty('--bg-canvas', hexToApply);
+    document.documentElement.style.setProperty('--theme-canvas', hexToApply);
+    localStorage.setItem('sm_custom_bg_canvas', hexToApply);
+    setAppliedNotice(`Applied ${hexToApply} as Canvas`);
+    setTimeout(() => setAppliedNotice(null), 2000);
+  };
+
+  const handleApplySurfaces = (hexToApply: string = currentHex) => {
+    soundFx.playChime();
+    document.documentElement.style.setProperty('--bg-surface-card', hexToApply);
+    document.documentElement.style.setProperty('--theme-surface', hexToApply);
+    localStorage.setItem('sm_custom_surface_card', hexToApply);
+    setAppliedNotice(`Applied ${hexToApply} to Surfaces`);
+    setTimeout(() => setAppliedNotice(null), 2000);
+  };
 
   // 2. Sneak Peek State (Blur steps: 16px -> 12px -> 8px -> 4px -> 0px)
   const blurSteps = [16, 12, 8, 4, 0];
@@ -107,104 +218,149 @@ export const MarijanaGardenWidget: React.FC = () => {
       {/* Grid: 3 Live Interactive Components */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* =========================================================
-            COMPONENT A: PANTONE COLOR SWATCH & FULL SHADE CUSTOMIZER
+            COMPONENT A: HONEYCOMB WHEEL & 21-SHADE LAB (Image 4 Replaces Image 5)
         ========================================================= */}
-        <div className="p-5 rounded-xl border border-border-subtle bg-surface-elevated/70 space-y-4">
+        <div className="p-5 rounded-2xl border border-border-subtle bg-surface-elevated/80 space-y-4 shadow-lg flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-mono text-content-muted">
-            <span className="flex items-center gap-1.5 text-content-primary font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-              Pantone Matrix & Shade Lab
+            <span className="flex items-center gap-1.5 text-content-primary font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-gold" />
+              Honeycomb & 21-Shade Studio
             </span>
-            <span>{activeSwatch.pantone}</span>
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-gold/10 text-gold border border-gold/20">
+              Live Modulation
+            </span>
           </div>
 
-          {/* Interactive Dot Grid that reacts to selected color */}
+          {/* Applied Notice Banner */}
+          {appliedNotice && (
+            <div className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono flex items-center gap-1.5">
+              <Check className="w-3 h-3" />
+              <span>{appliedNotice}</span>
+            </div>
+          )}
+
+          {/* SVG Honeycomb Mini Wheel + Color Hero Card */}
           <div
-            className="h-32 rounded-lg border border-border-subtle p-3 flex flex-col justify-between transition-colors duration-500 relative overflow-hidden"
+            className="rounded-xl p-3 border transition-colors flex flex-col items-center justify-center relative overflow-hidden"
             style={{
-              backgroundColor: `${activeSwatch.hex}15`,
-              borderColor: `${activeSwatch.hex}40`,
+              backgroundColor: currentHex,
+              color: isDark ? '#FFFFFF' : '#000000',
+              borderColor: 'rgba(0,0,0,0.15)',
             }}
           >
-            {/* SVG Dot Matrix */}
-            <div
-              className="absolute inset-0 opacity-40 pointer-events-none"
-              style={{
-                backgroundImage: `radial-gradient(${activeSwatch.hex} 1.5px, transparent 1.5px)`,
-                backgroundSize: '12px 12px',
-              }}
-            />
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface-card/80 text-content-primary border border-border-subtle">
-                {activeSwatch.name}
+            {/* Hex Display */}
+            <div className="text-center z-10 mb-2">
+              <span className="text-2xl font-display font-extrabold tracking-tight block">
+                {currentHex.toUpperCase()}
               </span>
-              <span className="text-[10px] font-mono text-content-secondary">
-                RGB({activeSwatch.rgb})
+              <span className="text-[10px] font-mono opacity-80 block">
+                RGB({rgb.r}, {rgb.g}, {rgb.b})
               </span>
             </div>
-            <div className="relative z-10 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  soundFx.playChime();
-                  document.documentElement.style.setProperty('--accent-gold', activeSwatch.hex);
-                  localStorage.setItem('sm_custom_accent_gold', activeSwatch.hex);
-                }}
-                className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all"
-                title="Apply this shade to entire website"
-              >
-                Apply to Website →
-              </button>
-              <span className="font-mono text-xs font-bold tracking-wider" style={{ color: activeSwatch.hex }}>
-                {activeSwatch.hex}
-              </span>
+
+            {/* SVG Honeycomb Color Wheel */}
+            <svg viewBox="-55 -55 110 110" className="w-36 h-36 drop-shadow-md cursor-pointer z-10">
+              {miniHoneycomb.map((node, i) => {
+                const isSelected = node.hex.toLowerCase() === currentHex.toLowerCase();
+                return (
+                  <polygon
+                    key={i}
+                    points="0,-9.5 8.2,-4.7 8.2,4.7 0,9.5 -8.2,4.7 -8.2,-4.7"
+                    transform={`translate(${node.x}, ${node.y})`}
+                    fill={node.hex}
+                    stroke={isSelected ? '#000000' : 'rgba(0,0,0,0.15)'}
+                    strokeWidth={isSelected ? 2 : 0.6}
+                    className="transition-transform hover:scale-125 cursor-pointer"
+                    onClick={() => {
+                      soundFx.playClick();
+                      setCurrentHex(node.hex);
+                      setInputVal(node.hex);
+                    }}
+                  >
+                    <title>{node.hex}</title>
+                  </polygon>
+                );
+              })}
+            </svg>
+          </div>
+
+          {/* 21 Tints & Shades Ladder (100% to 0%) */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-content-muted">
+              <span>21-STEP TINT & SHADE LADDER</span>
+              <span>100% → 0%</span>
+            </div>
+            <div className="grid grid-cols-7 gap-1 p-1.5 rounded-xl bg-surface-card border border-border-subtle max-h-24 overflow-y-auto no-scrollbar">
+              {shadeLadder.map((step) => {
+                const isSelected = step.hex.toLowerCase() === currentHex.toLowerCase();
+                return (
+                  <button
+                    key={step.pct}
+                    type="button"
+                    onClick={() => {
+                      soundFx.playClick();
+                      setCurrentHex(step.hex);
+                      setInputVal(step.hex);
+                    }}
+                    className={`h-6 rounded text-[9px] font-mono flex items-center justify-center transition-all ${
+                      isSelected ? 'ring-2 ring-gold scale-105 shadow font-bold' : 'hover:scale-105'
+                    }`}
+                    style={{
+                      backgroundColor: step.hex,
+                      color: hexToRgb(step.hex).r * 0.299 + hexToRgb(step.hex).g * 0.587 + hexToRgb(step.hex).b * 0.114 < 128 ? '#FFF' : '#000',
+                    }}
+                    title={`${step.hex} (${step.pct}%) - Click to select & shade`}
+                  >
+                    {step.pct}%
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* 6 Clickable Swatches + Custom Hex Input */}
-          <div className="grid grid-cols-6 gap-2 pt-1">
-            {PANTONE_SWATCHES.map((swatch) => (
-              <button
-                key={swatch.id}
-                onClick={() => {
-                  soundFx.playClick();
-                  setActiveSwatch(swatch);
-                  setClickCount((c) => c + 1);
-                }}
-                className={`group relative h-9 rounded-lg border transition-all flex items-center justify-center ${
-                  activeSwatch.id === swatch.id
-                    ? 'scale-110 border-white shadow-lg'
-                    : 'border-transparent hover:scale-105'
-                }`}
-                style={{ backgroundColor: swatch.hex }}
-                title={`${swatch.name} (${swatch.pantone})`}
-              >
-                {activeSwatch.id === swatch.id && (
-                  <Check className="w-4 h-4 text-white drop-shadow" />
-                )}
-              </button>
-            ))}
+          {/* Quick Apply Action Row */}
+          <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
+            <button
+              type="button"
+              onClick={() => handleApplyAccent()}
+              className="py-1.5 px-2 rounded-lg bg-gold/15 hover:bg-gold/25 text-gold border border-gold/30 font-semibold transition-all active:scale-95 text-center"
+              title="Apply to site accent"
+            >
+              Accent
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApplyCanvas()}
+              className="py-1.5 px-2 rounded-lg bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all active:scale-95 text-center"
+              title="Apply as canvas background"
+            >
+              Canvas
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApplySurfaces()}
+              className="py-1.5 px-2 rounded-lg bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all active:scale-95 text-center"
+              title="Apply to cards & surfaces"
+            >
+              Surfaces
+            </button>
           </div>
 
-          {/* Live Custom Hex / Color Input */}
-          <div className="flex items-center gap-2 pt-1">
+          {/* Input Box & Full Lab Button */}
+          <div className="flex items-center gap-1.5 pt-1 border-t border-border-subtle">
             <input
               type="text"
-              placeholder="Or type any hex / color (e.g. #66ccff)"
-              className="flex-1 bg-surface-card border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-mono text-content-primary focus:outline-none focus:border-pink-500"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              placeholder="#66ccff"
+              className="flex-1 bg-surface-card border border-border-subtle rounded-lg px-2.5 py-1 text-xs font-mono text-content-primary focus:outline-none focus:border-gold"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  const val = (e.target as HTMLInputElement).value.trim();
+                  const val = inputVal.trim();
                   if (val) {
                     soundFx.playChime();
                     const hex = val.startsWith('#') ? val : `#${val}`;
-                    setActiveSwatch({
-                      id: 'custom',
-                      name: 'Custom Pigment',
-                      pantone: 'Custom Hex',
-                      hex,
-                      rgb: 'Dynamic',
-                    });
+                    setCurrentHex(hex);
                   }
                 }
               }}
@@ -212,20 +368,28 @@ export const MarijanaGardenWidget: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                const el = document.getElementById('universal-color-lab');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth' });
+                const val = inputVal.trim();
+                if (val) {
+                  soundFx.playChime();
+                  const hex = val.startsWith('#') ? val : `#${val}`;
+                  setCurrentHex(hex);
                 }
               }}
-              className="px-2.5 py-1.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/20 text-[11px] font-mono whitespace-nowrap transition-colors"
+              className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold"
+            >
+              OK
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('universal-color-lab');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-2 py-1 rounded-lg bg-surface-card hover:bg-surface-elevated text-gold border border-gold/30 text-xs font-mono font-semibold whitespace-nowrap"
             >
               Full Lab ↑
             </button>
           </div>
-
-          <p className="text-[11px] text-content-muted italic">
-            Click any swatch or type any color to modulate shades and apply site-wide.
-          </p>
         </div>
 
         {/* =========================================================

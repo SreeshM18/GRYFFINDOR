@@ -482,3 +482,4 @@ export const useSuperAdaptiveTheme = (): SuperAdaptiveContextType => {
   }
   return ctx;
 };
+

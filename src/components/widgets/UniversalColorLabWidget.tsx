@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { soundFx } from '../ui/AudioSynthesizer';
+import { useSuperAdaptiveTheme } from '../../context/SuperAdaptiveThemeContext';
 import {
   Pipette,
   Copy,
@@ -14,6 +15,8 @@ import {
   Sun,
   Moon,
   ExternalLink,
+  Crosshair,
+  Layers,
 } from 'lucide-react';
 
 // Math helpers for Color Physics & WCAG Compliance
@@ -176,6 +179,14 @@ function generateHoneycombNodes(): HexNode[] {
 }
 
 export const UniversalColorLabWidget: React.FC = () => {
+  const {
+    setGlobalToken,
+    setComponentOverride,
+    designModeActive,
+    toggleDesignMode,
+    resetToDefaults,
+  } = useSuperAdaptiveTheme();
+
   // Current active color (starts at reference #66ccff from screenshot)
   const [currentHex, setCurrentHex] = useState<string>(() => {
     return localStorage.getItem('sm_custom_accent_gold') || '#66ccff';
@@ -306,6 +317,8 @@ export const UniversalColorLabWidget: React.FC = () => {
   // =========================================================================
   const applyAsAccent = () => {
     soundFx.playChime();
+    setGlobalToken('accent', currentHex);
+    setGlobalToken('buttonBg', currentHex);
     document.documentElement.style.setProperty('--accent-gold', currentHex);
     document.documentElement.style.setProperty('--accent-gold-soft', tintShadeLadder[4]?.hex || currentHex);
     document.documentElement.style.setProperty('--accent-burgundy', tintShadeLadder[12]?.hex || currentHex);
@@ -316,11 +329,13 @@ export const UniversalColorLabWidget: React.FC = () => {
 
   const applyAsBackground = () => {
     soundFx.playChime();
+    setGlobalToken('canvas', currentHex);
     document.documentElement.style.setProperty('--bg-canvas', currentHex);
     localStorage.setItem('sm_custom_bg_canvas', currentHex);
     
     // Auto-adjust text contrast if background is very light
     if (whiteContrast < 2.5 && blackContrast > 6) {
+      setGlobalToken('text', '#0B0B0C');
       document.documentElement.style.setProperty('--text-primary', '#0B0B0C');
       document.documentElement.style.setProperty('--text-secondary', '#242428');
       document.documentElement.style.setProperty('--text-muted', '#4A4A52');
@@ -335,6 +350,8 @@ export const UniversalColorLabWidget: React.FC = () => {
     soundFx.playChime();
     const cardColor = tintShadeLadder[16]?.hex || currentHex;
     const elevatedColor = tintShadeLadder[14]?.hex || currentHex;
+    setGlobalToken('surface', cardColor);
+    setGlobalToken('cardBg', cardColor);
     document.documentElement.style.setProperty('--bg-surface-card', cardColor);
     document.documentElement.style.setProperty('--bg-surface-elevated', elevatedColor);
     localStorage.setItem('sm_custom_surface_card', cardColor);
@@ -343,8 +360,23 @@ export const UniversalColorLabWidget: React.FC = () => {
     setTimeout(() => setAppliedState(null), 2500);
   };
 
+  const applyToNavbar = () => {
+    soundFx.playChime();
+    setComponentOverride('nav', { bg: currentHex });
+    setAppliedState('nav');
+    setTimeout(() => setAppliedState(null), 2500);
+  };
+
+  const applyToButtons = () => {
+    soundFx.playChime();
+    setComponentOverride('button', { bg: currentHex });
+    setAppliedState('button');
+    setTimeout(() => setAppliedState(null), 2500);
+  };
+
   const resetWebsiteColors = () => {
     soundFx.playClick();
+    resetToDefaults();
     document.documentElement.style.removeProperty('--accent-gold');
     document.documentElement.style.removeProperty('--accent-gold-soft');
     document.documentElement.style.removeProperty('--accent-burgundy');
@@ -389,42 +421,71 @@ export const UniversalColorLabWidget: React.FC = () => {
         </div>
 
         {/* Global Modulation Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={applyAsAccent}
-            className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all shadow-md flex items-center gap-2 border border-white/20 active:scale-95"
+            className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all shadow-md flex items-center gap-1.5 border border-white/20 active:scale-95"
             style={{
               backgroundColor: currentHex,
               color: blackContrast > whiteContrast ? '#000000' : '#FFFFFF',
             }}
             title="Set this color as the primary accent across buttons, badges, glows, and borders"
           >
-            {appliedState === 'accent' ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-            <span>Apply as Website Accent</span>
+            {appliedState === 'accent' ? <Check className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+            <span>Accent</span>
           </button>
 
           <button
             onClick={applyAsBackground}
-            className="px-3.5 py-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95"
+            className="px-3 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95"
             title="Apply this exact color to the website background canvas"
           >
-            {appliedState === 'bg' ? '✓ Applied Canvas' : 'Apply as Canvas'}
+            {appliedState === 'bg' ? '✓ Canvas' : 'Canvas'}
           </button>
 
           <button
             onClick={applyAsSurfaces}
-            className="px-3.5 py-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95"
+            className="px-3 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95"
             title="Apply matching shades to cards, modals and elevated surfaces"
           >
-            {appliedState === 'surface' ? '✓ Applied Surfaces' : 'Apply to Surfaces'}
+            {appliedState === 'surface' ? '✓ Surfaces' : 'Surfaces'}
+          </button>
+
+          <button
+            onClick={applyToNavbar}
+            className="px-3 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95"
+            title="Apply this color specifically to the top navigation bar"
+          >
+            {appliedState === 'nav' ? '✓ Navbar' : 'Navbar'}
+          </button>
+
+          <button
+            onClick={applyToButtons}
+            className="px-3 py-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-primary text-xs font-mono border border-border-subtle transition-all active:scale-95"
+            title="Apply this color specifically to interactive buttons"
+          >
+            {appliedState === 'button' ? '✓ Buttons' : 'Buttons'}
+          </button>
+
+          <button
+            onClick={toggleDesignMode}
+            className={`px-3 py-2 rounded-xl font-mono text-xs font-bold transition-all shadow-md flex items-center gap-1.5 border active:scale-95 ${
+              designModeActive
+                ? 'bg-emerald-500 text-black border-emerald-400 animate-pulse'
+                : 'bg-gold/15 hover:bg-gold/25 text-gold border-gold/30'
+            }`}
+            title="Click any element on your website to edit its appearance live"
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+            <span>{designModeActive ? '● Design Mode ON' : 'Click-to-Edit'}</span>
           </button>
 
           <button
             onClick={resetWebsiteColors}
-            className="p-2.5 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-muted hover:text-content-primary border border-border-subtle transition-all active:scale-95"
+            className="p-2 rounded-xl bg-surface-elevated hover:bg-surface-card text-content-muted hover:text-content-primary border border-border-subtle transition-all active:scale-95"
             title="Reset to default Gryffindor Obsidian & Gold palette"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

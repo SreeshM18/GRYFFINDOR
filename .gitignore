@@ -1,0 +1,30 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.next/
+.vercel/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Secrets and runtime environments: NEVER commit credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*.log
+*.local

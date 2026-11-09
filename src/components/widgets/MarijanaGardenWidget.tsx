@@ -128,28 +128,35 @@ export const MarijanaGardenWidget: React.FC = () => {
   const [appliedNotice, setAppliedNotice] = useState<string | null>(null);
 
   const rgb = hexToRgb(currentHex);
+  const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
   const miniHoneycomb = useMemo(() => generateMiniHoneycomb(), []);
 
-  // 21-Step Tint & Shade Ladder (100% to 0% in 5% increments)
+  // 21-Step Tint & Shade Ladder (100% to 0% in 5% increments) - mathematically distinct for any color
   const shadeLadder = useMemo(() => {
-    const steps = [];
-    for (let pct = 100; pct > 70; pct -= 5) {
-      const factor = (pct - 70) / 30;
-      const r = Math.round(rgb.r + (255 - rgb.r) * factor);
-      const g = Math.round(rgb.g + (255 - rgb.g) * factor);
-      const b = Math.round(rgb.b + (255 - rgb.b) * factor);
-      steps.push({ pct, hex: rgbToHex(r, g, b) });
-    }
-    steps.push({ pct: 70, hex: currentHex });
-    for (let pct = 65; pct >= 0; pct -= 5) {
-      const factor = pct / 70;
-      const r = Math.round(rgb.r * factor);
-      const g = Math.round(rgb.g * factor);
-      const b = Math.round(rgb.b * factor);
-      steps.push({ pct, hex: rgbToHex(r, g, b) });
+    const steps: { pct: number; hex: string }[] = [];
+    const lightness = hsl[2];
+    const rawBasePct = Math.round(lightness / 5) * 5;
+    const basePct = lightness >= 98 ? 100 : lightness <= 2 ? 0 : Math.max(5, Math.min(95, rawBasePct));
+
+    for (let pct = 100; pct >= 0; pct -= 5) {
+      if (pct === basePct) {
+        steps.push({ pct, hex: currentHex });
+      } else if (pct > basePct) {
+        const factor = (pct - basePct) / (100 - basePct);
+        const r = Math.round(rgb.r + (255 - rgb.r) * factor);
+        const g = Math.round(rgb.g + (255 - rgb.g) * factor);
+        const b = Math.round(rgb.b + (255 - rgb.b) * factor);
+        steps.push({ pct, hex: rgbToHex(r, g, b) });
+      } else {
+        const factor = basePct === 0 ? 0 : pct / basePct;
+        const r = Math.round(rgb.r * factor);
+        const g = Math.round(rgb.g * factor);
+        const b = Math.round(rgb.b * factor);
+        steps.push({ pct, hex: rgbToHex(r, g, b) });
+      }
     }
     return steps;
-  }, [rgb, currentHex]);
+  }, [rgb, hsl, currentHex]);
 
   // Relative luminance for contrast
   const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
@@ -416,12 +423,12 @@ export const MarijanaGardenWidget: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                const el = document.getElementById('universal-color-lab');
+                const el = document.getElementById('master-god-mode-controller');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               className="px-3 py-1.5 rounded-xl bg-surface-card hover:bg-surface-elevated text-gold border border-gold/30 text-xs font-mono font-semibold whitespace-nowrap transition-colors"
             >
-              Full Lab ↑
+              Master God Mode ↑
             </button>
           </div>
         </div>

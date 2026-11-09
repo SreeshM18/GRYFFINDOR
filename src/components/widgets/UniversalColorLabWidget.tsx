@@ -491,23 +491,27 @@ export const UniversalColorLabWidget: React.FC = () => {
       </div>
 
       {/* =========================================================================
-          THE FULL COLOR LAB CONTAINER (EXACT CLONE OF USER SCREENSHOT)
+          THE FULL COLOR LAB CONTAINER (ADAPTED & MIXED WITH GRYFFINDOR UI)
       ========================================================================= */}
-      <div
-        className="rounded-3xl p-6 sm:p-10 shadow-2xl transition-colors duration-500 relative overflow-hidden border border-black/10"
-        style={{
-          backgroundColor: currentHex,
-          color: blackContrast > whiteContrast ? '#000000' : '#FFFFFF',
-        }}
-      >
+      <div className="rounded-3xl p-6 sm:p-10 shadow-2xl transition-colors duration-500 relative overflow-hidden border border-border-subtle bg-surface-card/90 backdrop-blur-2xl">
+        {/* Ambient Dynamic Glows in Gryffindor Obsidian Space */}
+        <div
+          className="absolute -top-32 -left-32 w-96 h-96 rounded-full blur-[140px] opacity-25 pointer-events-none transition-colors duration-700"
+          style={{ backgroundColor: currentHex }}
+        />
+        <div
+          className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full blur-[140px] opacity-20 pointer-events-none transition-colors duration-700"
+          style={{ backgroundColor: currentHex }}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
           {/* =====================================================================
               LEFT PANEL (COL 1-4): HONEYCOMB WHEEL, INPUT, EYEDROPPER
           ===================================================================== */}
-          <div className="lg:col-span-4 bg-white/95 text-slate-900 rounded-3xl p-6 shadow-xl space-y-6 border border-white/60">
+          <div className="lg:col-span-4 bg-surface-elevated/70 border border-border-subtle rounded-3xl p-6 shadow-xl space-y-6 text-content-primary backdrop-blur-xl">
             {/* SVG Hexagonal Honeycomb Color Wheel (61 Cells) */}
             <div className="flex justify-center items-center py-2">
-              <svg viewBox="-85 -85 170 170" className="w-60 h-60 drop-shadow-md cursor-pointer overflow-visible">
+              <svg viewBox="-85 -85 170 170" className="w-60 h-60 drop-shadow-lg cursor-pointer overflow-visible">
                 {honeycombNodes.map((node, i) => {
                   const isSelected = node.hex.toLowerCase() === currentHex.toLowerCase();
                   return (
@@ -516,9 +520,9 @@ export const UniversalColorLabWidget: React.FC = () => {
                       points="0,-14.5 12.5,-7.2 12.5,7.2 0,14.5 -12.5,7.2 -12.5,-7.2"
                       transform={`translate(${node.x}, ${node.y})`}
                       fill={node.hex}
-                      stroke={isSelected ? '#000000' : 'rgba(0,0,0,0.15)'}
-                      strokeWidth={isSelected ? 2.5 : 0.8}
-                      className="transition-transform duration-150 hover:scale-125 hover:stroke-black hover:z-20 cursor-pointer"
+                      stroke={isSelected ? '#D3A625' : 'rgba(255,255,255,0.15)'}
+                      strokeWidth={isSelected ? 2.8 : 0.8}
+                      className="transition-transform duration-150 hover:scale-125 hover:stroke-white hover:z-20 cursor-pointer"
                       onClick={() => handleHexChange(node.hex)}
                     >
                       <title>{node.hex}</title>
@@ -530,7 +534,7 @@ export const UniversalColorLabWidget: React.FC = () => {
 
             {/* "Enter a color value" Input & OK Button */}
             <div className="space-y-2">
-              <label className="text-xs font-sans font-medium text-slate-600 block">
+              <label className="text-xs font-mono font-medium text-content-muted block">
                 Enter a color value
               </label>
               <form onSubmit={handleInputSubmit} className="flex items-center gap-2">
@@ -538,12 +542,12 @@ export const UniversalColorLabWidget: React.FC = () => {
                   type="text"
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
-                  placeholder="e.g. tomato, #ff6347"
-                  className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-sans text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm"
+                  placeholder="e.g. tomato, #66ccff"
+                  className="flex-1 bg-surface-card border border-border-subtle rounded-xl px-3 py-2 text-sm font-mono text-content-primary focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/50 shadow-sm"
                 />
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#00a86b] hover:bg-[#008f5a] text-white font-sans text-sm font-semibold shadow transition-colors active:scale-95"
+                  className="px-5 py-2 rounded-xl bg-gold hover:bg-gold-soft text-black font-mono text-xs font-bold shadow transition-colors active:scale-95"
                 >
                   OK
                 </button>
@@ -555,22 +559,22 @@ export const UniversalColorLabWidget: React.FC = () => {
               <button
                 type="button"
                 onClick={handleEyeDropper}
-                className="w-11 h-11 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition-colors active:scale-95"
+                className="w-11 h-11 rounded-xl border border-border-subtle bg-surface-card hover:bg-surface-elevated flex items-center justify-center text-content-secondary hover:text-gold shadow-sm transition-colors active:scale-95"
                 title="Eyedropper: Pick any color from your screen"
               >
-                <Pipette className="w-5 h-5 text-slate-800" />
+                <Pipette className="w-5 h-5 text-content-primary" />
               </button>
 
               <div
-                className="w-12 h-11 rounded-lg border border-slate-300 shadow-inner transition-colors duration-300"
+                className="w-12 h-11 rounded-xl border border-white/20 shadow-md transition-colors duration-300"
                 style={{ backgroundColor: currentHex }}
               />
 
               <div className="flex-1 text-right">
-                <span className="text-xs font-mono font-bold text-slate-500 block uppercase">
+                <span className="text-[10px] font-mono font-bold text-content-muted block uppercase tracking-wider">
                   Hex Code
                 </span>
-                <span className="text-sm font-mono font-bold text-slate-900">
+                <span className="text-sm font-mono font-bold text-content-primary">
                   {currentHex.toUpperCase()}
                 </span>
               </div>
@@ -583,107 +587,107 @@ export const UniversalColorLabWidget: React.FC = () => {
           <div className="lg:col-span-5 space-y-6">
             {/* Center Massive Color Typography & Contrast Ratios */}
             <div className="flex flex-col items-center justify-center text-center py-6 sm:py-8 space-y-3">
-              <h1 className="text-6xl sm:text-7xl font-sans font-extrabold tracking-tight drop-shadow-sm select-all">
+              <h1 className="text-6xl sm:text-7xl font-display font-extrabold tracking-tight drop-shadow-md select-all text-content-primary">
                 {currentHex.toLowerCase()}
               </h1>
 
-              <div className="space-y-0.5 font-mono text-sm sm:text-base opacity-95">
+              <div className="space-y-0.5 font-mono text-sm sm:text-base text-content-secondary">
                 <p>rgb({rgb.r}, {rgb.g}, {rgb.b})</p>
                 <p>hsl({hsl.h}, {hsl.s}%, {hsl.l}%)</p>
               </div>
 
-              {/* Black / White Text Contrast Ratios with Thumbs Indicator */}
-              <div className="flex items-center gap-8 pt-3 text-sm font-sans font-semibold">
-                <div className="flex items-center gap-1.5">
-                  <span className="opacity-90">Black text</span>
-                  <span className="font-mono font-bold">{blackContrast}:1</span>
+              {/* Black / White Text Contrast Ratios with Telemetry Badges */}
+              <div className="flex items-center gap-4 pt-3 text-xs font-mono font-semibold">
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-card border border-border-subtle shadow-sm">
+                  <span className="text-content-muted">Black text</span>
+                  <span className="font-bold text-content-primary">{blackContrast}:1</span>
                   {blackContrast >= 4.5 ? (
-                    <ThumbsUp className="w-4 h-4 fill-current text-slate-900" />
+                    <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
                   ) : (
-                    <ThumbsDown className="w-4 h-4 fill-current opacity-70" />
+                    <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span className="opacity-90">White text</span>
-                  <span className="font-mono font-bold">{whiteContrast}:1</span>
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-card border border-border-subtle shadow-sm">
+                  <span className="text-content-muted">White text</span>
+                  <span className="font-bold text-content-primary">{whiteContrast}:1</span>
                   {whiteContrast >= 4.5 ? (
-                    <ThumbsUp className="w-4 h-4 fill-current text-white" />
+                    <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
                   ) : (
-                    <ThumbsDown className="w-4 h-4 fill-current opacity-70" />
+                    <ThumbsDown className="w-3.5 h-3.5 text-rose-400" />
                   )}
                 </div>
               </div>
             </div>
 
             {/* Bottom Sliders Card (RGB & HSL) */}
-            <div className="bg-white/95 text-slate-900 rounded-3xl p-6 shadow-xl space-y-5 border border-white/60">
+            <div className="bg-surface-elevated/70 border border-border-subtle text-content-primary rounded-3xl p-6 shadow-xl space-y-5 backdrop-blur-xl">
               {/* RGB Row */}
               <div className="space-y-2">
                 <div className="grid grid-cols-4 gap-3 text-center">
                   {/* R */}
                   <div className="space-y-1">
-                    <span className="text-xs font-sans font-bold text-slate-800">R</span>
-                    <span className="text-xs font-mono block text-slate-600">{rgb.r}</span>
+                    <span className="text-xs font-mono font-bold text-rose-400">R</span>
+                    <span className="text-xs font-mono block text-content-secondary">{rgb.r}</span>
                     <input
                       type="range"
                       min="0"
                       max="255"
                       value={rgb.r}
                       onChange={(e) => handleRgbSlider('r', Number(e.target.value))}
-                      className="w-full accent-red-500 cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      className="w-full accent-rose-500 cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
                     />
-                    <span className="text-xs font-mono font-semibold text-slate-500 block">
+                    <span className="text-xs font-mono font-semibold text-content-muted block">
                       {rgb.r.toString(16).padStart(2, '0')}
                     </span>
                   </div>
 
                   {/* G */}
                   <div className="space-y-1">
-                    <span className="text-xs font-sans font-bold text-slate-800">G</span>
-                    <span className="text-xs font-mono block text-slate-600">{rgb.g}</span>
+                    <span className="text-xs font-mono font-bold text-emerald-400">G</span>
+                    <span className="text-xs font-mono block text-content-secondary">{rgb.g}</span>
                     <input
                       type="range"
                       min="0"
                       max="255"
                       value={rgb.g}
                       onChange={(e) => handleRgbSlider('g', Number(e.target.value))}
-                      className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
                     />
-                    <span className="text-xs font-mono font-semibold text-slate-500 block">
+                    <span className="text-xs font-mono font-semibold text-content-muted block">
                       {rgb.g.toString(16).padStart(2, '0')}
                     </span>
                   </div>
 
                   {/* B */}
                   <div className="space-y-1">
-                    <span className="text-xs font-sans font-bold text-slate-800">B</span>
-                    <span className="text-xs font-mono block text-slate-600">{rgb.b}</span>
+                    <span className="text-xs font-mono font-bold text-blue-400">B</span>
+                    <span className="text-xs font-mono block text-content-secondary">{rgb.b}</span>
                     <input
                       type="range"
                       min="0"
                       max="255"
                       value={rgb.b}
                       onChange={(e) => handleRgbSlider('b', Number(e.target.value))}
-                      className="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      className="w-full accent-blue-500 cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
                     />
-                    <span className="text-xs font-mono font-semibold text-slate-500 block">
+                    <span className="text-xs font-mono font-semibold text-content-muted block">
                       {rgb.b.toString(16).padStart(2, '0')}
                     </span>
                   </div>
 
                   {/* Alpha A */}
-                  <div className="space-y-1 opacity-70">
-                    <label className="text-xs font-sans font-bold text-slate-800 flex items-center justify-center gap-1 cursor-pointer">
+                  <div className="space-y-1 opacity-80">
+                    <label className="text-xs font-mono font-bold text-content-primary flex items-center justify-center gap-1 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={showAlpha}
                         onChange={(e) => setShowAlpha(e.target.checked)}
-                        className="rounded text-blue-600 cursor-pointer"
+                        className="rounded text-gold cursor-pointer"
                       />
                       <span>A</span>
                     </label>
-                    <span className="text-xs font-mono block text-slate-600">
+                    <span className="text-xs font-mono block text-content-secondary">
                       {showAlpha ? `${alphaVal}%` : '50%'}
                     </span>
                     <input
@@ -693,9 +697,9 @@ export const UniversalColorLabWidget: React.FC = () => {
                       disabled={!showAlpha}
                       value={alphaVal}
                       onChange={(e) => setAlphaVal(Number(e.target.value))}
-                      className="w-full accent-slate-500 cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none disabled:opacity-40"
+                      className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none disabled:opacity-30"
                     />
-                    <span className="text-xs font-mono font-semibold text-slate-500 block">
+                    <span className="text-xs font-mono font-semibold text-content-muted block">
                       {Math.round((alphaVal / 100) * 255).toString(16).padStart(2, '0')}
                     </span>
                   </div>
@@ -703,12 +707,12 @@ export const UniversalColorLabWidget: React.FC = () => {
               </div>
 
               {/* HSL Row */}
-              <div className="space-y-2 pt-2 border-t border-slate-200">
+              <div className="space-y-2 pt-2 border-t border-border-subtle">
                 <div className="grid grid-cols-3 gap-3 text-center">
                   {/* H */}
                   <div className="space-y-1">
-                    <span className="text-xs font-sans font-bold text-slate-800">H</span>
-                    <span className="text-xs font-mono block text-slate-600">{hsl.h}</span>
+                    <span className="text-xs font-mono font-bold text-content-primary">H</span>
+                    <span className="text-xs font-mono block text-content-secondary">{hsl.h}°</span>
                     <input
                       type="range"
                       min="0"
@@ -725,29 +729,29 @@ export const UniversalColorLabWidget: React.FC = () => {
 
                   {/* S */}
                   <div className="space-y-1">
-                    <span className="text-xs font-sans font-bold text-slate-800">S</span>
-                    <span className="text-xs font-mono block text-slate-600">{hsl.s}%</span>
+                    <span className="text-xs font-mono font-bold text-content-primary">S</span>
+                    <span className="text-xs font-mono block text-content-secondary">{hsl.s}%</span>
                     <input
                       type="range"
                       min="0"
                       max="100"
                       value={hsl.s}
                       onChange={(e) => handleHslSlider('s', Number(e.target.value))}
-                      className="w-full accent-slate-700 cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
                     />
                   </div>
 
                   {/* L */}
                   <div className="space-y-1">
-                    <span className="text-xs font-sans font-bold text-slate-800">L</span>
-                    <span className="text-xs font-mono block text-slate-600">{hsl.l}%</span>
+                    <span className="text-xs font-mono font-bold text-content-primary">L</span>
+                    <span className="text-xs font-mono block text-content-secondary">{hsl.l}%</span>
                     <input
                       type="range"
                       min="0"
                       max="100"
                       value={hsl.l}
                       onChange={(e) => handleHslSlider('l', Number(e.target.value))}
-                      className="w-full accent-slate-700 cursor-pointer h-1.5 bg-slate-200 rounded-lg appearance-none"
+                      className="w-full accent-gold cursor-pointer h-1.5 bg-surface-card rounded-lg appearance-none"
                     />
                   </div>
                 </div>
@@ -758,49 +762,56 @@ export const UniversalColorLabWidget: React.FC = () => {
           {/* =====================================================================
               RIGHT PANEL (COL 10-12): 21 TINTS & SHADES LADDER (100% to 0%)
           ===================================================================== */}
-          <div className="lg:col-span-3 space-y-1.5">
-            {tintShadeLadder.map((step) => {
-              const stepRgb = hexToRgb(step.hex) || { r: 0, g: 0, b: 0 };
-              const isDark = getLuminance(stepRgb.r, stepRgb.g, stepRgb.b) < 0.45;
-              const isSelected = step.hex.toLowerCase() === currentHex.toLowerCase();
+          <div className="lg:col-span-3 space-y-1.5 bg-surface-elevated/40 border border-border-subtle p-3 rounded-3xl backdrop-blur-xl">
+            <div className="flex items-center justify-between text-[11px] font-mono text-content-muted px-2 pb-1 border-b border-border-subtle">
+              <span>21 SHADES LADDER</span>
+              <span>100% → 0%</span>
+            </div>
 
-              return (
-                <div
-                  key={step.pct}
-                  onClick={() => handleHexChange(step.hex)}
-                  className={`group px-3 py-1.5 rounded-lg flex items-center justify-between font-mono text-xs cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-2 border-black font-extrabold shadow-md scale-[1.02] z-10'
-                      : 'hover:scale-[1.01] border border-transparent'
-                  }`}
-                  style={{
-                    backgroundColor: step.hex,
-                    color: isDark ? '#FFFFFF' : '#000000',
-                  }}
-                >
-                  <span className="tracking-tight">{step.hex}</span>
+            <div className="space-y-1 max-h-[580px] overflow-y-auto no-scrollbar pr-0.5">
+              {tintShadeLadder.map((step) => {
+                const stepRgb = hexToRgb(step.hex) || { r: 0, g: 0, b: 0 };
+                const isDarkStep = getLuminance(stepRgb.r, stepRgb.g, stepRgb.b) < 0.45;
+                const isSelected = step.hex.toLowerCase() === currentHex.toLowerCase();
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] opacity-80">{step.pct}%</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(step.hex);
-                      }}
-                      className="p-1 rounded hover:bg-black/20 transition-colors"
-                      title="Copy Hex"
-                    >
-                      {copiedHex === step.hex ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
-                      )}
-                    </button>
+                return (
+                  <div
+                    key={step.pct}
+                    onClick={() => handleHexChange(step.hex)}
+                    className={`group px-3 py-1.5 rounded-xl flex items-center justify-between font-mono text-xs cursor-pointer transition-all ${
+                      isSelected
+                        ? 'ring-2 ring-gold font-extrabold shadow-lg scale-[1.02] z-10'
+                        : 'hover:scale-[1.01] border border-transparent hover:border-border-strong'
+                    }`}
+                    style={{
+                      backgroundColor: step.hex,
+                      color: isDarkStep ? '#FFFFFF' : '#000000',
+                    }}
+                  >
+                    <span className="tracking-tight font-bold">{step.hex}</span>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] opacity-80">{step.pct}%</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(step.hex);
+                        }}
+                        className="p-1 rounded-lg hover:bg-black/20 transition-colors"
+                        title="Copy Hex"
+                      >
+                        {copiedHex === step.hex ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

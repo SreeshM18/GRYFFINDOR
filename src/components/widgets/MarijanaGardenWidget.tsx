@@ -20,6 +20,23 @@ function rgbToHex(r: number, g: number, b: number): string {
   return `#${clamp(r).toString(16).padStart(2, '0')}${clamp(g).toString(16).padStart(2, '0')}${clamp(b).toString(16).padStart(2, '0')}`;
 }
 
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}
+
 function hslToRgb(h: number, s: number, l: number) {
   h /= 360;
   s /= 100;
@@ -218,48 +235,61 @@ export const MarijanaGardenWidget: React.FC = () => {
       {/* Grid: 3 Live Interactive Components */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* =========================================================
-            COMPONENT A: HONEYCOMB WHEEL & 21-SHADE LAB (Image 4 Replaces Image 5)
+            COMPONENT A: HONEYCOMB WHEEL & 21-SHADE LAB (Adapted to Gryffindor Theme)
         ========================================================= */}
-        <div className="p-5 rounded-2xl border border-border-subtle bg-surface-elevated/80 space-y-4 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-mono text-content-muted">
+        <div className="p-5 rounded-2xl border border-border-subtle bg-surface-elevated/70 space-y-4 shadow-xl flex flex-col justify-between backdrop-blur-xl relative overflow-hidden">
+          {/* Subtle Ambient Backlight Glow in Selected Shade */}
+          <div
+            className="absolute -top-16 -left-16 w-48 h-48 rounded-full blur-[80px] opacity-25 pointer-events-none transition-colors duration-700"
+            style={{ backgroundColor: currentHex }}
+          />
+
+          <div className="relative z-10 flex items-center justify-between text-xs font-mono text-content-muted">
             <span className="flex items-center gap-1.5 text-content-primary font-bold">
               <Sparkles className="w-3.5 h-3.5 text-gold" />
               Honeycomb & 21-Shade Studio
             </span>
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-gold/10 text-gold border border-gold/20">
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
               Live Modulation
             </span>
           </div>
 
           {/* Applied Notice Banner */}
           {appliedNotice && (
-            <div className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono flex items-center gap-1.5">
+            <div className="relative z-10 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono flex items-center gap-1.5">
               <Check className="w-3 h-3" />
               <span>{appliedNotice}</span>
             </div>
           )}
 
-          {/* SVG Honeycomb Mini Wheel + Color Hero Card */}
-          <div
-            className="rounded-xl p-3 border transition-colors flex flex-col items-center justify-center relative overflow-hidden"
-            style={{
-              backgroundColor: currentHex,
-              color: isDark ? '#FFFFFF' : '#000000',
-              borderColor: 'rgba(0,0,0,0.15)',
-            }}
-          >
-            {/* Hex Display */}
-            <div className="text-center z-10 mb-2">
-              <span className="text-2xl font-display font-extrabold tracking-tight block">
-                {currentHex.toUpperCase()}
-              </span>
-              <span className="text-[10px] font-mono opacity-80 block">
-                RGB({rgb.r}, {rgb.g}, {rgb.b})
+          {/* SVG Honeycomb Mini Wheel + Color Hero Card (Dark Glass with Ambient Glow) */}
+          <div className="relative z-10 rounded-2xl p-4 border border-border-subtle bg-surface-card/90 backdrop-blur-xl flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
+            {/* Ambient Radial Mesh Glow */}
+            <div
+              className="absolute inset-0 opacity-20 pointer-events-none transition-colors duration-700"
+              style={{
+                background: `radial-gradient(circle at 50% 50%, ${currentHex} 0%, transparent 75%)`,
+              }}
+            />
+
+            {/* Active Hex Telemetry Header */}
+            <div className="text-center z-10 mb-3 flex flex-col items-center gap-0.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-sm"
+                  style={{ backgroundColor: currentHex }}
+                />
+                <span className="text-xl font-display font-extrabold tracking-tight text-content-primary">
+                  {currentHex.toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-content-muted">
+                RGB({rgb.r}, {rgb.g}, {rgb.b}) • HSL({rgbToHsl(rgb.r, rgb.g, rgb.b)[0]}°, {rgbToHsl(rgb.r, rgb.g, rgb.b)[1]}%, {rgbToHsl(rgb.r, rgb.g, rgb.b)[2]}%)
               </span>
             </div>
 
             {/* SVG Honeycomb Color Wheel */}
-            <svg viewBox="-55 -55 110 110" className="w-36 h-36 drop-shadow-md cursor-pointer z-10">
+            <svg viewBox="-55 -55 110 110" className="w-36 h-36 drop-shadow-md cursor-pointer z-10 overflow-visible">
               {miniHoneycomb.map((node, i) => {
                 const isSelected = node.hex.toLowerCase() === currentHex.toLowerCase();
                 return (
@@ -268,8 +298,8 @@ export const MarijanaGardenWidget: React.FC = () => {
                     points="0,-9.5 8.2,-4.7 8.2,4.7 0,9.5 -8.2,4.7 -8.2,-4.7"
                     transform={`translate(${node.x}, ${node.y})`}
                     fill={node.hex}
-                    stroke={isSelected ? '#000000' : 'rgba(0,0,0,0.15)'}
-                    strokeWidth={isSelected ? 2 : 0.6}
+                    stroke={isSelected ? '#D3A625' : 'rgba(255,255,255,0.15)'}
+                    strokeWidth={isSelected ? 2.5 : 0.6}
                     className="transition-transform hover:scale-125 cursor-pointer"
                     onClick={() => {
                       soundFx.playClick();
@@ -285,14 +315,18 @@ export const MarijanaGardenWidget: React.FC = () => {
           </div>
 
           {/* 21 Tints & Shades Ladder (100% to 0%) */}
-          <div className="space-y-1">
+          <div className="relative z-10 space-y-1">
             <div className="flex items-center justify-between text-[11px] font-mono text-content-muted">
               <span>21-STEP TINT & SHADE LADDER</span>
               <span>100% → 0%</span>
             </div>
-            <div className="grid grid-cols-7 gap-1 p-1.5 rounded-xl bg-surface-card border border-border-subtle max-h-24 overflow-y-auto no-scrollbar">
+            <div className="grid grid-cols-7 gap-1 p-2 rounded-xl bg-surface-card border border-border-subtle max-h-24 overflow-y-auto no-scrollbar">
               {shadeLadder.map((step) => {
                 const isSelected = step.hex.toLowerCase() === currentHex.toLowerCase();
+                const stepRgb = hexToRgb(step.hex);
+                const stepLum = (0.2126 * stepRgb.r + 0.7152 * stepRgb.g + 0.0722 * stepRgb.b) / 255;
+                const isLight = stepLum >= 0.5;
+
                 return (
                   <button
                     key={step.pct}
@@ -302,12 +336,12 @@ export const MarijanaGardenWidget: React.FC = () => {
                       setCurrentHex(step.hex);
                       setInputVal(step.hex);
                     }}
-                    className={`h-6 rounded text-[9px] font-mono flex items-center justify-center transition-all ${
-                      isSelected ? 'ring-2 ring-gold scale-105 shadow font-bold' : 'hover:scale-105'
+                    className={`h-6 rounded-md text-[9px] font-mono flex items-center justify-center transition-all ${
+                      isSelected ? 'ring-2 ring-gold scale-105 shadow font-bold z-10' : 'hover:scale-105'
                     }`}
                     style={{
                       backgroundColor: step.hex,
-                      color: hexToRgb(step.hex).r * 0.299 + hexToRgb(step.hex).g * 0.587 + hexToRgb(step.hex).b * 0.114 < 128 ? '#FFF' : '#000',
+                      color: isLight ? '#000000' : '#FFFFFF',
                     }}
                     title={`${step.hex} (${step.pct}%) - Click to select & shade`}
                   >
@@ -319,19 +353,19 @@ export const MarijanaGardenWidget: React.FC = () => {
           </div>
 
           {/* Quick Apply Action Row */}
-          <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
+          <div className="relative z-10 grid grid-cols-3 gap-1.5 text-xs font-mono">
             <button
               type="button"
               onClick={() => handleApplyAccent()}
-              className="py-1.5 px-2 rounded-lg bg-gold/15 hover:bg-gold/25 text-gold border border-gold/30 font-semibold transition-all active:scale-95 text-center"
-              title="Apply to site accent"
+              className="py-2 px-2.5 rounded-xl bg-gold/15 hover:bg-gold/25 text-gold border border-gold/30 font-bold transition-all active:scale-95 text-center shadow-sm"
+              title="Apply as primary website accent"
             >
               Accent
             </button>
             <button
               type="button"
               onClick={() => handleApplyCanvas()}
-              className="py-1.5 px-2 rounded-lg bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all active:scale-95 text-center"
+              className="py-2 px-2.5 rounded-xl bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all active:scale-95 text-center shadow-sm"
               title="Apply as canvas background"
             >
               Canvas
@@ -339,7 +373,7 @@ export const MarijanaGardenWidget: React.FC = () => {
             <button
               type="button"
               onClick={() => handleApplySurfaces()}
-              className="py-1.5 px-2 rounded-lg bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all active:scale-95 text-center"
+              className="py-2 px-2.5 rounded-xl bg-surface-card hover:bg-surface-elevated text-content-primary border border-border-subtle transition-all active:scale-95 text-center shadow-sm"
               title="Apply to cards & surfaces"
             >
               Surfaces
@@ -347,13 +381,13 @@ export const MarijanaGardenWidget: React.FC = () => {
           </div>
 
           {/* Input Box & Full Lab Button */}
-          <div className="flex items-center gap-1.5 pt-1 border-t border-border-subtle">
+          <div className="relative z-10 flex items-center gap-1.5 pt-1 border-t border-border-subtle">
             <input
               type="text"
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               placeholder="#66ccff"
-              className="flex-1 bg-surface-card border border-border-subtle rounded-lg px-2.5 py-1 text-xs font-mono text-content-primary focus:outline-none focus:border-gold"
+              className="flex-1 bg-surface-card border border-border-subtle rounded-xl px-3 py-1.5 text-xs font-mono text-content-primary focus:outline-none focus:border-gold"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const val = inputVal.trim();
@@ -375,7 +409,7 @@ export const MarijanaGardenWidget: React.FC = () => {
                   setCurrentHex(hex);
                 }
               }}
-              className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold"
+              className="px-3 py-1.5 rounded-xl bg-gold hover:bg-gold-soft text-black text-xs font-mono font-bold transition-colors active:scale-95"
             >
               OK
             </button>
@@ -385,7 +419,7 @@ export const MarijanaGardenWidget: React.FC = () => {
                 const el = document.getElementById('universal-color-lab');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-2 py-1 rounded-lg bg-surface-card hover:bg-surface-elevated text-gold border border-gold/30 text-xs font-mono font-semibold whitespace-nowrap"
+              className="px-3 py-1.5 rounded-xl bg-surface-card hover:bg-surface-elevated text-gold border border-gold/30 text-xs font-mono font-semibold whitespace-nowrap transition-colors"
             >
               Full Lab ↑
             </button>

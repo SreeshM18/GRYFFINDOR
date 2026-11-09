@@ -62,3 +62,4 @@ grant select on public.user_theme_configs to anon;
 
 -- Enable Realtime publication
 alter publication supabase_realtime add table public.user_theme_configs;
+

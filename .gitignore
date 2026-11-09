@@ -34,3 +34,17 @@ dist-ssr
 Use this now/
 *.whtt
 
+# Standalone Reference Files & Zips
+*.zip
+temp_god_mode/
+Gryffindor_Integrated_God_Mode/
+index1.html
+index2.html
+style.css
+README1.md
+INTEGRATE_IN_YOUR_EXISTING_SITE.md
+ANTIGRAVITY_MERGE_PROMPT.md
+MASTER_GOD_MODE_PROMPT.md
+001_user_theme_configs.sql
+
+

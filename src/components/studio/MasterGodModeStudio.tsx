@@ -743,6 +743,52 @@ export const MasterGodModeStudio: React.FC = () => {
             </div>
           </div>
 
+          {/* Quick Target Modulation Pills (Matching Screenshot #3) */}
+          <div className="flex flex-wrap items-center gap-2 p-3 rounded-2xl bg-surface-card border border-border-subtle">
+            <span className="text-[11px] font-mono text-content-muted font-bold uppercase mr-1">
+              Live Modulation:
+            </span>
+            {[
+              { id: 'accent', label: 'Accent', color: themeModel.rules.global.all?.accent || '#D3A625' },
+              { id: 'background', label: 'Canvas', color: themeModel.rules.global.all?.background || '#0B0B0C' },
+              { id: 'card', label: 'Surfaces', color: themeModel.rules.global.all?.card || '#151518' },
+              { id: 'text', label: 'Navbar', color: '#D3A625' },
+              { id: 'accent', label: 'Buttons', color: themeModel.rules.global.all?.accent || '#D3A625' },
+            ].map((tgt, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  soundFx.playClick();
+                  setCurrentProperty(tgt.id as keyof StyleRules);
+                }}
+                className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 border transition-all ${
+                  currentProperty === tgt.id
+                    ? 'bg-gold/20 text-gold border-gold/40 shadow-sm'
+                    : 'bg-surface-elevated text-content-muted hover:text-content-primary border-border-subtle'
+                }`}
+              >
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tgt.color }} />
+                <span>{tgt.label}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                soundFx.playClick();
+                setInspectMode(!inspectMode);
+              }}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 border transition-all ${
+                inspectMode
+                  ? 'bg-emerald-500 text-black border-emerald-400 animate-pulse'
+                  : 'bg-gold/15 hover:bg-gold/25 text-gold border-gold/30'
+              }`}
+            >
+              <Crosshair className="w-3.5 h-3.5" />
+              <span>Click-to-Edit</span>
+            </button>
+          </div>
+
           {/* Master 3-Column Studio Deck */}
           <div className="rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-border-subtle bg-surface-card/90 backdrop-blur-2xl">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
@@ -975,7 +1021,22 @@ export const MasterGodModeStudio: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] opacity-80">{step.pct}%</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] opacity-80">{step.pct}%</span>
+                          <button
+                            type="button"
+                            className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/20"
+                            title="Copy HEX"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(step.hex);
+                              soundFx.playPop();
+                              setStatusMessage(`Copied ${step.hex} to clipboard`);
+                            }}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

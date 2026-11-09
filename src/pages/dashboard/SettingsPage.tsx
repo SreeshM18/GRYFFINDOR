@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Settings, ShieldCheck, Lock, User, Globe, Save, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Settings, ShieldCheck, Lock, User, Globe, Save, Check, Sparkles } from 'lucide-react';
 import { workOs } from '../../services/workOsStorage';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 
@@ -122,6 +123,47 @@ export const SettingsPage: React.FC = () => {
                 <p className="text-content-muted text-[11px]">Allows sharing your current availability (Available, Working, On Break) with zero background monitoring.</p>
               </div>
             </label>
+          </div>
+        </div>
+
+        {/* Appearance & Master God Mode Visual Controller */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-gold/30 bg-surface-card space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="p-2.5 rounded-2xl bg-gold/15 text-gold border border-gold/30">
+                <Sparkles className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="font-display font-bold text-lg text-content-primary">
+                  Appearance & Master God Mode
+                </h3>
+                <p className="text-xs text-content-secondary">
+                  Configure real visual appearance, element overrides, and responsive design systems.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/designs/god-mode"
+              className="px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-soft text-black text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95 shrink-0"
+            >
+              <span>Open God Mode Studio →</span>
+            </Link>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-surface-elevated/70 border border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-mono">
+            <div className="space-y-1">
+              <span className="font-bold text-content-primary block">
+                Floating ✦ Customize Trigger
+              </span>
+              <span className="text-[11px] text-content-muted block">
+                The floating button is active across all dashboard pages. Click it to open the right-side control area and select elements live.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                ✓ SUPABASE SYNC READY
+              </span>
+            </div>
           </div>
         </div>
 

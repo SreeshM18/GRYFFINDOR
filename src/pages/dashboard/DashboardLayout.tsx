@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { soundFx } from '../../components/ui/AudioSynthesizer';
 import { workOs } from '../../services/workOsStorage';
+import { GryffindorGodMode } from '../../features/god-mode/GryffindorGodMode';
 
 export const DashboardLayout: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string; email: string } | null>(null);
@@ -110,10 +111,16 @@ export const DashboardLayout: React.FC = () => {
 
   if (!currentUser) return null;
 
+  const pageSlug = location.pathname.split('/').filter(Boolean).pop() || 'dashboard';
+
   return (
-    <div className="min-h-screen bg-canvas text-content-primary flex flex-col md:flex-row">
+    <div className="min-h-screen bg-canvas text-content-primary flex flex-col md:flex-row" data-gryffindor-root>
       {/* Mobile Top Header */}
-      <div className="md:hidden border-b border-border-subtle bg-surface-card p-4 flex items-center justify-between">
+      <div
+        data-god-id="mobile-header"
+        data-god-role="navigation"
+        className="md:hidden border-b border-border-subtle bg-surface-card p-4 flex items-center justify-between"
+      >
         <div className="flex items-center gap-2">
           <span className="font-display font-extrabold text-sm tracking-widest text-content-primary">GRYFFINDOR</span>
           <span className="text-[10px] font-serif italic text-gold">The Common Room</span>
@@ -129,6 +136,8 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside
+        data-god-id="side-navigation"
+        data-god-role="navigation"
         className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 border-r border-border-subtle bg-surface-card/95 backdrop-blur-md p-5 flex flex-col justify-between shrink-0 overflow-y-auto transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
       >
@@ -247,10 +256,17 @@ export const DashboardLayout: React.FC = () => {
         </div >
       </aside >
 
-  {/* Main Content Area */ }
-  < main className = "flex-1 p-6 sm:p-10 overflow-y-auto" >
-    <Outlet />
-      </main >
-    </div >
+      {/* Main Content Area */}
+      <main className="flex-1 p-6 sm:p-10 overflow-y-auto" data-god-page={pageSlug}>
+        <Outlet />
+      </main>
+
+      {/* Floating Integrated Master God Mode Control Drawer */}
+      <GryffindorGodMode
+        userId={currentUser.id}
+        pageId={pageSlug}
+        authorized={Boolean(currentUser)}
+      />
+    </div>
   );
 };

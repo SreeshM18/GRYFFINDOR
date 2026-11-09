@@ -59,3 +59,4 @@ Every pull request or release must pass:
 2. Responsive check: Viewports at 320px, 375px, 390px (iPhone), 768px (iPad), 1024px, 1440px (MacBook), and 1920px+ (HP OMEN) with zero unwanted horizontal overflow.
 3. Contrast verification: All theme and palette overrides must maintain WCAG 2.1 AA contrast ($4.5:1$).
 4. Data persistence: Verify actions persist across browser refresh and logout/login.
+

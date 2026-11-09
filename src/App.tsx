@@ -26,6 +26,7 @@ import { DesignStudioPage } from './pages/DesignStudioPage';
 import { DesignSystemProvider } from './context/DesignSystemContext';
 import { SuperAdaptiveThemeProvider } from './context/SuperAdaptiveThemeContext';
 import { LiveDesignModeInspector } from './components/studio/LiveDesignModeInspector';
+import { GryffindorGodMode } from './features/god-mode/GryffindorGodMode';
 
 // Private Work OS Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -191,6 +192,15 @@ export const AppContent: React.FC = () => {
 
       {/* Live Website Designer Inspector HUD (Click-to-Edit Any Element) */}
       <LiveDesignModeInspector />
+
+      {/* Floating Master God Mode System Controller on Public Pages */}
+      {!isAppArea && (
+        <GryffindorGodMode
+          userId="sreesh"
+          pageId={location.pathname.replace(/^\//, '') || 'home'}
+          authorized={true}
+        />
+      )}
     </div>
   );
 };

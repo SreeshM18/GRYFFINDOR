@@ -162,6 +162,56 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
+/* =========================================================================
+   EMIL KOWALSKI DESIGN ENGINEERING STANDARDS (CRAFT & MOTION EXCELLENCE)
+   ========================================================================= */
+
+/* 1. Eliminate mobile tap flash and 300ms delay */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  touch-action: manipulation;
+}
+
+/* 2. Numerical tabular stability (numbers never jitter on change) */
+.tabular-nums,
+[data-tabular-nums] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 3. Tactile button active physics: responsive micro-press */
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active,
+.btn-press:active {
+  transform: scale(0.975);
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 4. Fluid ease-out entry curves (faster on start, no sluggishness) */
+.ease-out-fluid {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 5. Capped reading line length */
+.prose-editorial {
+  max-width: 65ch;
+  line-height: 1.65;
+}
+
+/* 6. Hardware acceleration for smooth GPU compositing */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 7. Safe area insets for iPhone / iPad viewports */
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
 /* Custom editorial scrollbar */
 ::-webkit-scrollbar {
   width: 5px;

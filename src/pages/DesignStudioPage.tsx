@@ -6,6 +6,7 @@ import { AritroTelemetryWidget } from '../components/widgets/AritroTelemetryWidg
 import { FudaliMomentumWidget } from '../components/widgets/FudaliMomentumWidget';
 import { EyeballsBroadcastWidget } from '../components/widgets/EyeballsBroadcastWidget';
 import { UniversalColorLabWidget } from '../components/widgets/UniversalColorLabWidget';
+import { EmilCraftEngineWidget } from '../components/widgets/EmilCraftEngineWidget';
 import {
   Palette,
   Check,
@@ -24,7 +25,7 @@ import { Link } from 'react-router-dom';
 
 export const DesignStudioPage: React.FC = () => {
   const { currentDesign, setDesign, preset } = useDesignSystem();
-  const [activeTab, setActiveTab] = useState<'all' | 'color-lab' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'emil-craft' | 'color-lab' | 'marijana' | 'aritro' | 'fudali' | 'eyeballs'>('all');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 animate-fade-in">
@@ -176,7 +177,8 @@ export const DesignStudioPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-surface-card border border-border-subtle text-xs font-mono">
             {[
               { id: 'all', label: 'All Modules' },
-              { id: 'color-lab', label: '✦ Universal Color Lab' },
+              { id: 'emil-craft', label: '✦ Emil Kowalski Craft' },
+              { id: 'color-lab', label: 'Universal Color Lab' },
               { id: 'marijana', label: 'Marijana Garden' },
               { id: 'aritro', label: 'Aritro Telemetry' },
               { id: 'fudali', label: 'Fudali Slider' },
@@ -200,7 +202,14 @@ export const DesignStudioPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 0. UNIVERSAL COLOR & SHADE LABORATORY (Real-Time Website Customizer) */}
+        {/* 0. EMIL KOWALSKI CRAFT & MOTION STANDARDS (github.com/emilkowalski/skills.git) */}
+        {(activeTab === 'all' || activeTab === 'emil-craft') && (
+          <div className="space-y-3">
+            <EmilCraftEngineWidget />
+          </div>
+        )}
+
+        {/* 1. UNIVERSAL COLOR & SHADE LABORATORY (Real-Time Website Customizer) */}
         {(activeTab === 'all' || activeTab === 'color-lab') && (
           <div className="space-y-3">
             <UniversalColorLabWidget />

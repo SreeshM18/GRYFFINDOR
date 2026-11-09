@@ -398,11 +398,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/80 backdrop-blur-md animate-fade-in select-none"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/80 backdrop-blur-md select-none"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-3xl border border-border-strong bg-surface-card/95 shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[80vh]"
+        className="w-full max-w-2xl rounded-3xl border border-border-strong bg-surface-card/95 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top JARVIS Deterministic Telemetry HUD */}
